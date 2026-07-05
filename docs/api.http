@@ -1,0 +1,126 @@
+﻿### ScoutBite 联调用例（VS Code 装 REST Client 插件，点击 Send Request 即可执行）
+### 联调顺序出自《接口实现》：注册→建店→审核→上架→领券→下单→支付→评价→推荐→超时回补
+### 阶段：接口全部是骨架占位，返回 todo 提示；此文件先立「流程」，后续每天逐步变绿
+
+@host = http://localhost:8081
+@agent = http://localhost:8000
+
+### ① 注册三个角色：用户 A / 商家 B / 管理员 C（返回真 token）
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "phone": "13800000001",
+  "password": "pass-1234",
+  "role": "USER",
+  "nickname": "用户A"
+}
+
+### ② B 创建店铺提交审核（状态机 pending）
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "phone": "13800000002",
+  "password": "pass-1234",
+  "role": "MERCHANT",
+  "nickname": "商家B"
+}
+
+### ③ C（管理员）审核通过（；演示用快捷通道）
+POST {{host}}/api/admin/shops/1/approve
+Authorization: Bearer {{adminToken}}
+
+### ④ nearby 查到已审核的店（距离排序）
+GET {{host}}/api/shops/nearby?lat=30.2741&lng=120.1551&radius=3000&category=HOTPOT
+
+### ⑤ B 上架套餐（）
+POST {{host}}/api/merchant/skus
+Authorization: Bearer {{merchantToken}}
+Content-Type: application/json
+
+{
+  "shopId": 1,
+  "title": "双人烤鱼套餐",
+  "price": 19800,
+  "stock": 50
+}
+
+### ⑥ A 领券（Lua 原子扣减）
+POST {{host}}/api/coupons/1/claim
+Authorization: Bearer {{userToken}}
+
+### ⑦ A 下单（注意 Idempotency-Key 头，幂等）
+POST {{host}}/api/orders
+Authorization: Bearer {{userToken}}
+Idempotency-Key: order-demo-001
+Content-Type: application/json
+
+{
+  "skuId": 1,
+  "couponId": 1
+}
+
+### ⑧ A 支付（）
+POST {{host}}/api/orders/1/pay
+Authorization: Bearer {{userToken}}
+
+### ⑨ A 生成评价草稿（；走门面转发 agent-api）
+POST {{host}}/api/agent/user/review-draft
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "userNote": "排队久但红油很香，店员主动加水",
+  "imageKeys": ["minio/a.jpg"],
+  "preferScores": {"taste": 5, "wait": 2}
+}
+
+### ⑩ A 确认发布草稿（签字权在用户，）
+POST {{host}}/api/agent/user/review-draft/d-000/publish
+Authorization: Bearer {{userToken}}
+
+### ⑪ A 对话式推荐（LangGraph）
+POST {{host}}/api/agent/user/recommend
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "message": "今晚想吃辣的，两个人，人均100左右",
+  "lat": 30.2741,
+  "lng": 120.1551
+}
+
+### ⑫ B 商家分析：skill=ops（）
+POST {{host}}/api/agent/merchant/analyze
+Authorization: Bearer {{merchantToken}}
+Content-Type: application/json
+
+{
+  "shopId": 1,
+  "skill": "ops"
+}
+
+### ⑬ Agent 服务健康检查（直连，仅联调/验收用）
+GET {{agent}}/health
+
+### ⑭ Agent 推荐骨架（直测 agent-api；上线后前端不直连此服务）
+POST {{agent}}/agent/recommend
+Content-Type: application/json
+
+{
+  "message": "今晚想吃辣的",
+  "lat": 30.2741,
+  "lng": 120.1551
+}
+
+### ⑮ 再下一单不支付，等超时后查库存回补（关单场景）
+POST {{host}}/api/orders
+Authorization: Bearer {{userToken}}
+Idempotency-Key: order-timeout-demo
+Content-Type: application/json
+
+{
+  "skuId": 1
+}

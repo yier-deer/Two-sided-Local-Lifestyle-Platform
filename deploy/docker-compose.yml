@@ -1,0 +1,62 @@
+﻿# ScoutBite 基础设施三件套（PostgreSQL / Redis / MinIO）
+#
+# 端口说明（重要）：
+#   本机 5432 / 6379 已被用户自装的 PostgreSQL / Redis 占用（S0 体检时实测），
+#   因此宿主端口映射为 5433 / 6380 避开冲突，容器内部端口不变。
+#   后续 JDBC 连 localhost:5433，Redis 客户端连 localhost:6380。
+#
+# 范围：只容器化三大件；shop-api / agent-api 本机跑（mvn / uvicorn），
+# 联调压测日再做应用容器化（多阶段 Dockerfile）。理由见 docs/decisions.md。
+services:
+  postgres:
+    image: postgres:16
+    container_name: scoutbite-pg
+    environment:
+      POSTGRES_DB: scoutbite          # 库名（官方镜像约定的变量名）
+      POSTGRES_USER: scoutbite        # 用户
+      POSTGRES_PASSWORD: scoutbite123
+    ports:
+      - "5433:5432"                   # 宿主 5433 → 容器 5432（避开本机已占用的 5432）
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:                      # 「进程活着」≠「能接连接」，compose 靠它判断真 ready
+      test: ["CMD-SHELL", "pg_isready -U scoutbite -d scoutbite"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: scoutbite-redis
+    ports:
+      - "6380:6379"                   # 宿主 6380 → 容器 6379（避开本机已占用的 6379）
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio
+    container_name: scoutbite-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: scoutbite
+      MINIO_ROOT_PASSWORD: scoutbite123   # 官方要求至少 8 位，少了起不来
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # 浏览器控制台
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pg_data:
+  redis_data:
+  minio_data:

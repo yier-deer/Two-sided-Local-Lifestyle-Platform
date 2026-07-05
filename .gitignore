@@ -1,0 +1,36 @@
+# Java / Maven
+target/
+*.class
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 本地环境（含密码类配置，禁止入库）
+*.local.yml
+.env
+
+# 学习与个人材料（非项目交付物，不入库）
+学习指南/
+scoutbite-guide/
+docs/秋招面试站/
+docs/面试复习全资料*.md
+docs/简历-终版.md
+docs/_build_html.py
+evals/.replay-token.tmp
+*.tmp
+.claude/
