@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- 继承 Spring Boot 官方父工程：锁定全套依赖版本，不用自己配版本号 -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.4</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.scoutbite</groupId>
+  <artifactId>shop-api</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>shop-api</name>
+  <description>ScoutBite 主站：业务与鉴权（Spring Boot 3 / Java 21）</description>
+
+  <properties>
+    <!-- 本机实测 Java 21.0.10（Zulu），冻结 -->
+    <java.version>21</java.version>
+  </properties>
+
+  <dependencies>
+    <!-- Web 容器 + REST 接口 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <!-- 参数校验（@NotBlank 等，开始用） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <!-- 健康检查端点：/actuator/health，验收项之一 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <!-- SpringDoc：自动生成 Swagger UI。注意必须是 2.x 才配 Boot 3 -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <!-- 新增：JPA（实体映射 + Repository） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <!-- 新增：PostgreSQL 驱动 -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- 新增：密码哈希。只要 crypto 小包，不引 starter-security（全家桶会拦掉所有接口） -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+    </dependency>
+    <!-- 新增：JWT 三件套（0.12 API，与老教程不兼容） -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.12.6</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>0.12.6</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>0.12.6</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- 新增：Redis（券库存 Lua 扣减 + 订单 ZSET 延迟关单） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <!--
+      仍未引（纪律延续）：
+      - spring-boot-starter-security    ：永远不引，手写轻量 JWT 过滤器
+    -->
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

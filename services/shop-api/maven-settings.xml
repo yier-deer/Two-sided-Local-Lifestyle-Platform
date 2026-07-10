@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  本项目专用 Maven settings（绕开公司私服，走阿里云公共镜像）。
+  背景：全局 ~/.m2/settings.xml 指向公司 Nexus(172.16.8.3)，不在公司网络时连接超时。
+  用法：在 services/shop-api 目录下执行
+      mvn -s maven-settings.xml spring-boot:run
+  本文件不改动公司全局配置，上班时全局配置照常生效。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>aliyun-public</id>
+      <!-- 只镜像 central，不拦截其他自定义仓库 -->
+      <mirrorOf>central</mirrorOf>
+      <name>Aliyun Public Repository</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+</settings>

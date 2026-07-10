@@ -1,0 +1,50 @@
+﻿# shop-api 全部配置（新增数据源 + JWT 配置）
+# 端口说明：原计划 8080，但本机 Docker 里 aio-sandbox-mcp 容器占用 8079-8080 且自启，
+# 为不干扰既有工具链，主站改用 8081（详见 docs/decisions.md ADR-019）
+server:
+  port: 8081
+
+spring:
+  application:
+    name: shop-api
+  datasource:                       # 连容器 PG（注意宿主端口是 5433，ADR-015）
+    url: jdbc:postgresql://localhost:5433/scoutbite
+    username: scoutbite
+    password: scoutbite123
+  jpa:
+    hibernate:
+      ddl-auto: none                # 表结构交给 schema.sql，不让 Hibernate 二次建表
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always                  # PG 非嵌入式库，必须 always 才执行 schema.sql
+  data:
+    redis:                          # 注意 6380！容器映射偏移（本机自装 Redis 占 6379，ADR-015）
+      host: localhost
+      port: 6380
+
+# JWT；订单超时；服务间密钥与 agent-api 地址
+scoutbite:
+  jwt:
+    secret: scoutbite-demo-secret-key-32bytes!!
+    expire-hours: 24
+  order:
+    expire-seconds: 30
+  internal-token: scoutbite-internal-token-2026   # 服务间密钥：与 agent-api/.env 一致
+  agent-api:
+    url: http://localhost:8000
+
+# SpringDoc / Swagger UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: order
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
