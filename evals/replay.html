@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Agent Trace 回放 · ScoutBite</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; background: #f5f1ea; color: #2b2620; padding: 24px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: #7a7166; font-size: 13px; margin-bottom: 16px; }
+  .bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  input[type=text] { flex: 1; min-width: 280px; padding: 8px 10px; border: 1px solid #d8d0c4; border-radius: 8px; font-size: 13px; }
+  button { padding: 8px 16px; background: #d63a12; color: #fff; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  button.sec { background: #17685a; }
+  label.chk { font-size: 13px; color: #7a7166; display: flex; align-items: center; gap: 4px; }
+  .trace { background: #fff; border: 1px solid #e5ddd1; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; cursor: pointer; }
+  .skill { font-family: Consolas, monospace; font-size: 13px; font-weight: 700; color: #d63a12; }
+  .meta { font-size: 12px; color: #7a7166; }
+  .lat { font-family: Consolas, monospace; font-size: 12px; color: #17685a; }
+  .body { display: none; margin-top: 10px; }
+  .trace.open .body { display: block; }
+  pre { background: #1e2937; color: #e0f2fe; border-radius: 8px; padding: 10px; font-size: 11.5px; overflow-x: auto; font-family: Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+  .cap { font-size: 12px; font-weight: 700; color: #7a7166; margin: 8px 0 4px; }
+  .tools span { display: inline-block; background: #e7f2ee; color: #17685a; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-family: Consolas, monospace; margin: 0 4px 4px 0; }
+  .msg { padding: 10px; border-radius: 8px; background: #fdf3e0; color: #7a5b16; font-size: 13px; margin-bottom: 12px; display: none; }
+</style>
+</head>
+<body>
+  <h1>Agent Trace 回放</h1>
+  <p class="sub">行程 「最简回放页」：贴登录 token 拉轨迹——输入 / 工具链 / 输出 / 时延。ADMIN 勾选"全站"可看全部用户。</p>
+  <div class="bar">
+    <input type="text" id="token" placeholder="粘贴 JWT（登录 POST /api/auth/login 的 data.token）">
+    <label class="chk"><input type="checkbox" id="all"> 全站（仅 ADMIN）</label>
+    <button onclick="load()">拉取</button>
+    <button class="sec" onclick="clearAll()">清空</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div id="list"></div>
+
+<script>
+/** 拉取 trace 列表并渲染（fetch /api/agent/traces，ADMIN 可带 all=true） */
+function load() {
+  const token = document.getElementById('token').value.trim();
+  const all = document.getElementById('all').checked;
+  const msg = document.getElementById('msg');
+  msg.style.display = 'none';
+  if (!token) { msg.textContent = '请先粘贴 token'; msg.style.display = 'block'; return; }
+  fetch(`http://localhost:8081/api/agent/traces${all ? '?all=true' : ''}`, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(r => r.json())
+    .then(body => {
+      if (body.code !== 0) { msg.textContent = `code=${body.code} ${body.message}`; msg.style.display = 'block'; return; }
+      render(body.data || []);
+    })
+    .catch(e => { msg.textContent = '请求失败：' + e; msg.style.display = 'block'; });
+}
+
+/** 渲染轨迹卡片（点击头部展开/收起） */
+function render(traces) {
+  const list = document.getElementById('list');
+  list.innerHTML = traces.length ? '' : '<p style="color:#7a7166;font-size:13px">（无轨迹——先用 Swagger 调几次 /api/agent/** 再回来）</p>';
+  for (const t of traces) {
+    const div = document.createElement('div');
+    div.className = 'trace';
+    const tools = (t.tools && t.tools.toolCalls) || [];
+    div.innerHTML = `
+      <div class="head">
+        <span class="skill">#${t.id} ${t.skill}</span>
+        <span class="meta">user ${t.userId} · ${t.createdAt.slice(0, 19)}</span>
+        <span class="lat">${t.latencyMs}ms</span>
+      </div>
+      <div class="body">
+        <div class="cap">输入</div><pre>${esc(JSON.stringify(t.input, null, 1))}</pre>
+        <div class="cap">工具链（${tools.length} 次调用）</div>
+        <div class="tools">${tools.map(x => `<span>${esc(x)}</span>`).join('') || '<span style="background:#fdecec;color:#9b1c2a">无</span>'}</div>
+        <div class="cap">输出</div><pre>${esc(JSON.stringify(t.output, null, 1)).slice(0, 4000)}</pre>
+      </div>`;
+    div.querySelector('.head').onclick = () => div.classList.toggle('open');
+    list.appendChild(div);
+  }
+}
+
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function clearAll() { document.getElementById('list').innerHTML = ''; document.getElementById('msg').style.display = 'none'; }
+</script>
+</body>
+</html>
