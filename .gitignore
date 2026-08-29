@@ -34,3 +34,4 @@ docs/_build_html.py
 evals/.replay-token.tmp
 *.tmp
 .claude/
+docs/day1-学习笔记.md
