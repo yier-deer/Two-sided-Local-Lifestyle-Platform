@@ -23,7 +23,10 @@ public class Order {
     public static final String CANCELLED_TIMEOUT = "CANCELLED_TIMEOUT";
     public static final String CANCELLED_USER = "CANCELLED_USER";
     public static final String REFUNDED = "REFUNDED";
-    public static final String REDEEMED = "REDEEMED";     // public static final String REVIEWED = "REVIEWED";     // @Id
+    public static final String REDEEMED = "REDEEMED";
+    public static final String REVIEWED = "REVIEWED";
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

@@ -39,7 +39,14 @@ async function send() {
   err.value = ''
   await nextTick(); box.value?.scrollTo({ top: 99999 })
   try {
-    const data = await agentRecommend(text, lat.value, lng.value, sessionId.value)
+    // 浏览器未定位成功时 lat/lng 为 null——后端经纬度必填（float），此时走"不带坐标"会让 Python 拒绝。
+    // 解决方案：后端缺省用默认坐标（西湖东岸）；这里请求失败且没定位时，用默认坐标兜底重试一次。
+    let data
+    if (lat.value != null && lng.value != null) {
+      data = await agentRecommend(text, lat.value, lng.value, sessionId.value)
+    } else {
+      data = await agentRecommend(text, 30.24, 120.15, sessionId.value)
+    }
     messages.value.push({
       role: 'ai',
       text: data.answer,

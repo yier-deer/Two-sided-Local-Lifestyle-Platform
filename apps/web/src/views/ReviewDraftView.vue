@@ -85,7 +85,7 @@ const dims = [['taste', '口味'], ['wait', '等位'], ['env', '环境']]
         </div>
       </div>
 
-      <button class="primary" @click="gen" :disabled="busy || err">
+      <button class="primary" @click="gen" :disabled="busy">
         {{ busy ? 'AI 起草中…' : '✨ 生成评价草稿' }}
       </button>
     </div>

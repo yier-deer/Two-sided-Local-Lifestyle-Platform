@@ -35,3 +35,5 @@ evals/.replay-token.tmp
 *.tmp
 .claude/
 docs/day1-学习笔记.md
+
+*.log

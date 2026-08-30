@@ -50,8 +50,18 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        // 白名单直接放行
+        // 白名单直接放行；但若带了票仍解析注入（/api/auth/me 在白名单前缀下却需要身份）
         if (WHITELIST.stream().anyMatch(path::startsWith)) {
+            String auth = request.getHeader("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                try {
+                    Claims claims = jwtUtil.parse(auth.substring(7));
+                    request.setAttribute("userId", Long.valueOf(claims.getSubject()));
+                    request.setAttribute("role", claims.get("role", String.class));
+                } catch (Exception ignored) {
+                    // 白名单路径不因坏票拒绝——只是没有身份
+                }
+            }
             chain.doFilter(request, response);
             return;
         }
