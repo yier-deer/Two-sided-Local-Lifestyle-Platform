@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.controller;
+package com.scoutbite.shop.controller;
 
 import com.scoutbite.shop.common.ApiResponse;
 import com.scoutbite.shop.common.ErrorCode;

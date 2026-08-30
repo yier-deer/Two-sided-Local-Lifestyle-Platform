@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.service;
+package com.scoutbite.shop.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scoutbite.shop.entity.Like;

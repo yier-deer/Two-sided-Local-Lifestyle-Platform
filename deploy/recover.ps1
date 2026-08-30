@@ -1,4 +1,4 @@
-﻿# -recover.ps1 —— 环境一键恢复（ASCII only，防 PS5.1 编码坑）
+# -recover.ps1 —— 环境一键恢复（ASCII only，防 PS5.1 编码坑）
 # 用法：powershell -ExecutionPolicy Bypass -File deploy\-recover.ps1
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

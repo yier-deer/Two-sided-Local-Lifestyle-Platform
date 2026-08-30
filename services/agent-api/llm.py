@@ -1,4 +1,4 @@
-﻿# llm.py —— DeepSeek 客户端（OpenAI 兼容接口，httpx 直调，不引 openai 包）。
+# llm.py —— DeepSeek 客户端（OpenAI 兼容接口，httpx 直调，不引 openai 包）。
 # 设计要点：
 #  - json 模式：response_format=json_object（DeepSeek 要求提示词里含 "json" 字样并给示例）
 #  - 显式超时：LLM 慢生成不能拖死调用方（默认 5s 会掐死，这里 60s）

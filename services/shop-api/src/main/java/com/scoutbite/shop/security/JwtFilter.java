@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.security;
+package com.scoutbite.shop.security;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;

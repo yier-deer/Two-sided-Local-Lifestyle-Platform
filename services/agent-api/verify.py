@@ -1,4 +1,4 @@
-﻿# _verify.py —— 全链路验证脚本（UTF-8 安全，Python 侧跑）
+# _verify.py —— 全链路验证脚本（UTF-8 安全，Python 侧跑）
 # 覆盖：错误路径 40903 / 越权 40300 / 商家三技能 / 归属校验 / 护栏直测
 # 用法：.\.venv\Scripts\python.exe _verify.py
 import json

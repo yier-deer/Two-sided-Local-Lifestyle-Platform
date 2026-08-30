@@ -1,4 +1,4 @@
-﻿# ScoutBite 基础设施三件套（PostgreSQL / Redis / MinIO）
+# ScoutBite 基础设施三件套（PostgreSQL / Redis / MinIO）
 #
 # 端口说明（重要）：
 #   本机 5432 / 6379 已被用户自装的 PostgreSQL / Redis 占用（S0 体检时实测），

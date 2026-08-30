@@ -59,13 +59,13 @@ const fen = (v) => (v == null ? '-' : (v / 100).toFixed(2))
 
     <div class="card order-item" v-for="o in orders" :key="o.id" :class="{ dim: o.status.startsWith('CANCELLED') || o.status === 'REFUNDED' }">
       <div class="row1">
-        <b>#{{ o.id }} · 店铺 {{ o.shopId }} · 套餐 {{ o.skuTitle || o.skuId }}</b>
+        <b>#{{ o.id }} · 店铺 #{{ o.shopId }} · 套餐 #{{ o.skuId }}</b>
         <span class="badge" :class="o.status">{{ statusText[o.status] || o.status }}</span>
       </div>
       <div class="muted">
         实付 <span class="price">¥{{ fen(o.priceSnapshot) }}</span>
         <span v-if="o.couponId"> · 已用满减券</span>
-        · 下单时间 {{ (o.createdAt || '').slice(0, 19).replace('T', ' ') }}
+        <span v-if="o.status === 'CREATED'"> · 支付截止 {{ (o.expireAt || '').slice(0, 19).replace('T', ' ') }}</span>
       </div>
 
       <div class="actions">

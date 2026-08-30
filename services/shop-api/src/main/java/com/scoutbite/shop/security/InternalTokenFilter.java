@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.security;
+package com.scoutbite.shop.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

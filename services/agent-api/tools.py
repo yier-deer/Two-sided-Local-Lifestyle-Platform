@@ -1,4 +1,4 @@
-﻿# tools.py —— 瘦事实工具：agent-api 回头调 shop-api 的 /internal 只读接口。
+# tools.py —— 瘦事实工具：agent-api 回头调 shop-api 的 /internal 只读接口。
 # 铁律：本服务不直连数据库——数据一律从这里拿（带 X-Internal-Token 服务间密钥）。
 import os
 

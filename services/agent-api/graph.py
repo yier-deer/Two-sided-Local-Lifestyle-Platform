@@ -1,4 +1,4 @@
-﻿# graph.py —— 推荐五步编排（LangGraph）+ 程序化护栏。
+# graph.py —— 推荐五步编排（LangGraph）+ 程序化护栏。
 #
 # 对外方法论名 PRED：Preference(画像) → Restriction(硬约束) → Evidence(检索+证据) → Decide(对比生成)。
 # 实现上是五个节点 + 护栏节点：

@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.service;
+package com.scoutbite.shop.service;
 
 import com.scoutbite.shop.common.ErrorCode;
 import com.scoutbite.shop.entity.Order;

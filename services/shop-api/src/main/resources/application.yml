@@ -1,4 +1,4 @@
-﻿# shop-api 全部配置（新增数据源 + JWT 配置）
+# shop-api 全部配置（新增数据源 + JWT 配置）
 # 端口说明：原计划 8080，但本机 Docker 里 aio-sandbox-mcp 容器占用 8079-8080 且自启，
 # 为不干扰既有工具链，主站改用 8081（详见 docs/decisions.md ADR-019）
 server:

@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.config;
+package com.scoutbite.shop.config;
 
 import com.scoutbite.shop.entity.Coupon;
 import com.scoutbite.shop.entity.Like;

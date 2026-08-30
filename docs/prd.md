@@ -1,4 +1,4 @@
-﻿# 探店雷达 ScoutBite · 产品需求文档
+# 探店雷达 ScoutBite · 产品需求文档
 
 Status: 冻结
 Updated: 2026-08-18

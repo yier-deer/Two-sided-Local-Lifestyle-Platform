@@ -1,4 +1,4 @@
-﻿# merchant_graph.py —— 商家分析 Agent（）：观察 / 假设 / 建议三层。
+# merchant_graph.py —— 商家分析 Agent（）：观察 / 假设 / 建议三层。
 #
 # 三个工具不是一个神提示词（行程原话）：ops→metrics / reviews→clusters / competitors→竞品。
 #   collect   工具：按 skill 拉对应数据（归属校验已在 Java 门面做过）

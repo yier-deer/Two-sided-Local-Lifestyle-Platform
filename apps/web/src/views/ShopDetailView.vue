@@ -90,7 +90,7 @@ const catName = { HOTPOT: '火锅', COFFEE: '咖啡', ENTERTAIN: '玩乐' }
       <div class="card" v-for="c in coupons" :key="c.id" style="display:flex;align-items:center;gap:12px">
         <div style="flex:1">
           <b style="color:#d63a12">{{ c.title }}</b>
-          <div class="muted">满 {{ fen(c.threshold) }} 减 {{ fen(c.amount) }} · 余量 {{ c.stock ?? '-' }}</div>
+          <div class="muted">满 {{ fen(c.threshold) }} 减 {{ fen(c.amount) }} · 每人限领一张</div>
         </div>
         <button class="small teal" :disabled="busy" @click="claim(c)">领取</button>
       </div>

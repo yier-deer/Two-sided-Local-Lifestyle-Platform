@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.common;
+package com.scoutbite.shop.common;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-﻿### ScoutBite 联调用例（VS Code 装 REST Client 插件，点击 Send Request 即可执行）
+### ScoutBite 联调用例（VS Code 装 REST Client 插件，点击 Send Request 即可执行）
 ### 联调顺序出自《接口实现》：注册→建店→审核→上架→领券→下单→支付→评价→推荐→超时回补
 ### 阶段：接口全部是骨架占位，返回 todo 提示；此文件先立「流程」，后续每天逐步变绿
 

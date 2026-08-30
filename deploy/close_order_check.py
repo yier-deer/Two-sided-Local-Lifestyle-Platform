@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 close_order_check.py —— 关单对账：未支付单超时后，三个资源必须全部归位。

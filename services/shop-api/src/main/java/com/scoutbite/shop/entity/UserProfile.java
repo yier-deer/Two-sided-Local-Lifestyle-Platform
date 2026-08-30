@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.entity;
+package com.scoutbite.shop.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

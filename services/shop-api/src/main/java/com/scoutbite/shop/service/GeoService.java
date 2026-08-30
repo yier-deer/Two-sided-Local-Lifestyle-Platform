@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.service;
+package com.scoutbite.shop.service;
 
 import com.scoutbite.shop.entity.Shop;
 import com.scoutbite.shop.repository.ShopRepository;

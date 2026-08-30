@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 run_eval.py —— 离线评测：一条命令跑完全部黄金集，生成 evals/reports/latest.md。

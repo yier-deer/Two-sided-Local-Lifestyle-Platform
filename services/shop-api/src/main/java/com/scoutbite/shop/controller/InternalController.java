@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.controller;
+package com.scoutbite.shop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scoutbite.shop.common.ApiResponse;

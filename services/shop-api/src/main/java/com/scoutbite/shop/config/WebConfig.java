@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.config;
+package com.scoutbite.shop.config;
 
 import com.scoutbite.shop.security.JwtFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

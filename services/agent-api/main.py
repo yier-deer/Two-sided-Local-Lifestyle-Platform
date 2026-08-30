@@ -1,4 +1,4 @@
-﻿# main.py —— agent-api 入口：Agent 大脑（完全体：推荐 + 评价草稿 + 商家分析）。
+# main.py —— agent-api 入口：Agent 大脑（完全体：推荐 + 评价草稿 + 商家分析）。
 #
 # 边界铁律（写在这防止将来手滑）：
 #   1. 本服务不直连前端——统一由 shop-api 的 /api/agent 门面转发（身份走 X-User-Id 头）

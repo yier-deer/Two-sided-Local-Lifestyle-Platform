@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.repository;
+package com.scoutbite.shop.repository;
 
 import com.scoutbite.shop.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;

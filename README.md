@@ -1,4 +1,4 @@
-﻿# 本地生活双端 Agent 平台（代号 ScoutBite 探店雷达）
+# 本地生活双端 Agent 平台（代号 ScoutBite 探店雷达）
 
 本地生活双端 Agent MVP：用户被 Agent 推荐到店并完成评价，商家被 Agent 分析并行动。
 

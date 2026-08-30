@@ -1,4 +1,4 @@
-﻿# ScoutBite ER 初稿 v0.1（）
+# ScoutBite ER 初稿 v0.1（）
 
 > 约定：主键统一 `bigint` 自增；价格一律用整数「分」存 int（禁浮点，ADR-005）；
 > 时间用 `timestamptz`；软删除不做，状态机表达生命周期。

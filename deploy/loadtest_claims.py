@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 loadtest_claims.py —— 压测：200 并发抢 100 张券，断言绝不超卖。

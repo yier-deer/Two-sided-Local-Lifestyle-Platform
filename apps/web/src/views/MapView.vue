@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 // 地图页（主页）：定位 → Leaflet 打点 → 附近列表按距离排
 // center 是全站"我在哪"的唯一来源（Agent 复用——位置同源性）
 import { onMounted, ref } from 'vue'

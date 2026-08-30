@@ -1,4 +1,4 @@
-﻿package com.scoutbite.shop.repository;
+package com.scoutbite.shop.repository;
 
 import com.scoutbite.shop.entity.AgentTrace;
 import org.springframework.data.jpa.repository.JpaRepository;

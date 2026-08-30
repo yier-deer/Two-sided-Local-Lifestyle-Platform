@@ -1,4 +1,4 @@
-﻿-- ScoutBite schema（只建 users / shops 两张表）
+-- ScoutBite schema（只建 users / shops 两张表）
 -- 依赖纪律：skus/coupons/orders 等 建——功能没到不建表
 -- 全部 IF NOT EXISTS：因为 sql.init.mode=always 每次启动都会执行本文件
 

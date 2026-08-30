@@ -1,4 +1,4 @@
-﻿# review_graph.py —— 评价草稿 CASDG（）：模型起草，用户签字。
+# review_graph.py —— 评价草稿 CASDG（）：模型起草，用户签字。
 #
 # Collect → Align → Score+Draft → Gate（图片描述并入 Draft，MVP 无图）
 #   collect  工具：订单事实（belongToUser + canReview = REDEEMED 且未评）——不可编造区
