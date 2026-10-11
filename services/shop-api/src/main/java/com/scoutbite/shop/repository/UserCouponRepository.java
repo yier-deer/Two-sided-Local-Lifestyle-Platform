@@ -16,6 +16,8 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
 
     /** 我的券列表（可按状态过滤） */
     List<UserCoupon> findByUserIdOrderByIdDesc(Long userId);
+    long countByCouponId(Long couponId);
+    long countByCouponIdAndStatus(Long couponId, String status);
 
     /** 找一张指定的 UNUSED 券（下单选券用） */
     Optional<UserCoupon> findByIdAndUserIdAndStatus(Long id, Long userId, String status);
@@ -40,4 +42,10 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
     @Query("UPDATE UserCoupon uc SET uc.status = 'UNUSED', uc.orderId = NULL " +
            "WHERE uc.orderId = :orderId AND uc.status = 'FROZEN'")
     int release(@Param("orderId") Long orderId);
+
+    /** 未履约退款：支付已经把券置 USED，退款赢家同时恢复券的可用状态。 */
+    @Modifying
+    @Query("UPDATE UserCoupon uc SET uc.status = 'UNUSED', uc.orderId = NULL " +
+           "WHERE uc.orderId = :orderId AND uc.status IN ('FROZEN', 'USED')")
+    int releaseAfterRefund(@Param("orderId") Long orderId);
 }

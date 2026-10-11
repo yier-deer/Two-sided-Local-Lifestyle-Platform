@@ -5,6 +5,7 @@ import com.scoutbite.shop.entity.Order;
 import com.scoutbite.shop.entity.Sku;
 import com.scoutbite.shop.repository.OrderRepository;
 import com.scoutbite.shop.repository.SkuRepository;
+import com.scoutbite.shop.repository.ShopRepository;
 import com.scoutbite.shop.repository.UserCouponRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class OrderService {
 
     private final OrderRepository orderRepo;
     private final SkuRepository skuRepo;
+    private final ShopRepository shopRepo;
     private final UserCouponRepository userCouponRepo;
     private final com.scoutbite.shop.repository.CouponRepository couponRepo;
     private final StringRedisTemplate redis;
@@ -44,6 +46,7 @@ public class OrderService {
 
     public OrderService(OrderRepository orderRepo,
                         SkuRepository skuRepo,
+                        ShopRepository shopRepo,
                         UserCouponRepository userCouponRepo,
                         com.scoutbite.shop.repository.CouponRepository couponRepo,
                         StringRedisTemplate redis,
@@ -51,6 +54,7 @@ public class OrderService {
                         @Value("${scoutbite.order.expire-seconds:900}") long expireSeconds) {
         this.orderRepo = orderRepo;
         this.skuRepo = skuRepo;
+        this.shopRepo = shopRepo;
         this.userCouponRepo = userCouponRepo;
         this.couponRepo = couponRepo;
         this.redis = redis;
@@ -68,13 +72,17 @@ public class OrderService {
         // 第一层幂等：见过的 key 直接返回原单
         if (idemKey != null && !idemKey.isBlank()) {
             Optional<Order> exist = orderRepo.findByIdempotencyKey(idemKey);
-            if (exist.isPresent()) return exist.get();
+            if (exist.isPresent()) return ownedIdempotentOrder(exist.get(), userId);
         }
 
         // 校验 SKU
         Sku sku = skuRepo.findById(skuId).orElse(null);
         if (sku == null || !sku.isOnSale()) {
             throw new BizException(ErrorCode.PARAM_ERROR, "套餐不存在或已下架");
+        }
+        var shop = shopRepo.findById(sku.getShopId()).orElse(null);
+        if (shop == null || !"approved".equals(shop.getStatus())) {
+            throw new BizException(ErrorCode.PARAM_ERROR, "门店尚未通过审核，暂不能购买");
         }
 
         Instant expireAt = Instant.now().plusSeconds(expireSeconds);
@@ -85,6 +93,7 @@ public class OrderService {
             order = tx.execute(status -> {
                 // ② 若用券：先校验归属与状态，拿到券 ID 存进订单
                 Long couponId = null;
+                int payable = sku.getPrice();
                 if (userCouponId != null) {
                     var uc = userCouponRepo.findById(userCouponId)
                             .filter(c -> c.getUserId().equals(userId))
@@ -95,11 +104,19 @@ public class OrderService {
                     // 遗留修复（S8）：满减门槛校验——订单金额须达到券的 threshold
                     var coupon = couponRepo.findById(uc.getCouponId())
                             .orElseThrow(() -> new BizException(ErrorCode.PARAM_ERROR, "券模板不存在"));
+                    if (!coupon.getShopId().equals(sku.getShopId())) {
+                        throw new BizException(ErrorCode.PARAM_ERROR, "优惠券仅可用于所属门店");
+                    }
+                    Instant now = Instant.now();
+                    if (now.isBefore(coupon.getStartAt()) || now.isAfter(coupon.getEndAt())) {
+                        throw new BizException(ErrorCode.PARAM_ERROR, "优惠券不在有效期内");
+                    }
                     if (sku.getPrice() < coupon.getThreshold()) {
                         throw new BizException(ErrorCode.PARAM_ERROR,
                                 "未到用券门槛（需满 " + coupon.getThreshold() + " 分）");
                     }
                     couponId = uc.getCouponId();
+                    payable = Math.max(0, sku.getPrice() - coupon.getAmount());
                 }
 
                 // ④ INSERT 订单（先拿 id，券冻结要绑定 orderId）
@@ -108,7 +125,7 @@ public class OrderService {
                 o.setShopId(sku.getShopId());
                 o.setSkuId(skuId);
                 o.setCouponId(couponId);
-                o.setPriceSnapshot(sku.getPrice());  // 价格快照：之后改价不影响本单
+                o.setPriceSnapshot(payable);  // 应付价格快照：用券后的分金额，之后改价不影响本单
                 o.setStatus(Order.CREATED);
                 o.setExpireAt(expireAt);
                 o.setIdempotencyKey(idemKey);
@@ -132,7 +149,7 @@ public class OrderService {
         } catch (DataIntegrityViolationException e) {
             // 第二层幂等：并发同 key 撞唯一索引 → 查出原单返回
             Order exist = orderRepo.findByIdempotencyKey(idemKey).orElse(null);
-            if (exist != null) return exist;
+            if (exist != null) return ownedIdempotentOrder(exist, userId);
             throw new BizException(ErrorCode.IDEMPOTENT_CONFLICT, "下单冲突，请重试");
         }
 
@@ -200,7 +217,7 @@ public class OrderService {
         if (o == null || !o.getUserId().equals(userId)) {
             throw new BizException(ErrorCode.PARAM_ERROR, "订单不存在");
         }
-        if (Order.REDEEMED.equals(o.getStatus())) {
+        if (Order.REDEEMED.equals(o.getStatus()) || Order.REVIEWED.equals(o.getStatus())) {
             return o;   // 幂等：重复核销直接成功
         }
         throw new BizException(ErrorCode.STATE_CONFLICT,
@@ -227,7 +244,11 @@ public class OrderService {
     public Order refund(Long orderId, Long userId) {
         Integer rows = tx.execute(status -> {
             int r = orderRepo.refundCas(orderId, userId);
-            if (r > 0) compensate(orderId);
+            if (r > 0) {
+                Order order = orderRepo.findById(orderId).orElseThrow();
+                skuRepo.restock(order.getSkuId());
+                userCouponRepo.releaseAfterRefund(orderId);
+            }
             return r;
         });
         return finishCancel(orderId, userId, rows, "退单");
@@ -238,6 +259,13 @@ public class OrderService {
         Order o = orderRepo.findById(orderId).orElseThrow();
         skuRepo.restock(o.getSkuId());
         userCouponRepo.release(orderId);
+    }
+
+    private Order ownedIdempotentOrder(Order order, Long userId) {
+        if (!order.getUserId().equals(userId)) {
+            throw new BizException(ErrorCode.IDEMPOTENT_CONFLICT, "该幂等键不可用于当前用户");
+        }
+        return order;
     }
 
     /** 取消/退单的收尾：0 行时区分原因 */

@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -79,6 +80,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSkusCoupons(); // 每店 2 SKU + 1 券
         seedPresetUsers(); // 3 个预设用户（评价作者 + 画像原料）
         seedNewShop();     // 1 家新店（exploreBoost 演示主角）
+        seedDemoMerchant(); // 双端演示账号，只接管尚未绑定的指定种子门店
         seedContent();     // 每店 8~20 条评价（掺差评）+ 帖子 + 点赞
         profileService.refreshAll();   // 画像离线刷新（模拟夜间任务）
     }
@@ -171,6 +173,36 @@ public class DataSeeder implements CommandLineRunner {
             user.setRole(u[2]);
             user.setNickname(u[1]);
             userRepo.save(user);
+        }
+    }
+
+    /** 不修改现存账号或真实归属；重启始终只检查同两家门店，不逐次接管其他店。 */
+    private void seedDemoMerchant() {
+        User merchant = userRepo.findByPhone("13611110004").orElseGet(() -> {
+            User user = new User();
+            user.setPhone("13611110004");
+            user.setPasswordHash(encoder.encode("merchant123456"));
+            user.setRole("MERCHANT");
+            user.setNickname("蜀味里店长");
+            return userRepo.save(user);
+        });
+        // 手机号碰巧被真实普通用户使用时，不升级角色、不更改密码、更不赋予门店。
+        if (!"MERCHANT".equals(merchant.getRole())) return;
+
+        List<Shop> shops = shopRepo.findAll().stream()
+                .sorted(Comparator.comparing(Shop::getId)).toList();
+        Shop firstHotpot = shops.stream()
+                .filter(s -> "HOTPOT".equals(s.getCategory()) && "杭州".equals(s.getCity()))
+                .filter(s -> s.getName().matches("(?:老灶|川味|潮牛|椒麻|码头|围炉)火锅·西湖\\d+号店"))
+                .findFirst().orElse(null);
+        Shop newShop = shops.stream()
+                .filter(s -> "新店·围炉小火锅·开业尝鲜".equals(s.getName()))
+                .findFirst().orElse(null);
+        for (Shop shop : new Shop[]{firstHotpot, newShop}) {
+            if (shop != null && Long.valueOf(0).equals(shop.getOwnerId())) {
+                shop.setOwnerId(merchant.getId());
+                shopRepo.save(shop);
+            }
         }
     }
 

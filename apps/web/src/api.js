@@ -1,134 +1,93 @@
-// api.js —— 全站唯一 HTTP 出口：自动带 token、统一拆信封
-// 开发期走 Vite 代理（/api → 8081），无 CORS 问题
-const BASE = ''
+import { createClient } from "./client.js";
+import { createDemoStore } from "./demo/store.js";
+import { session, logout } from "./session.js";
 
-/**
- * 统一请求函数。
- * @param path 接口路径（如 /api/auth/login）
- * @param opts { method, body, headers }
- * @returns 信封里的 data（code !== 0 时抛 Error，message 可直接展示）
- */
-export async function api(path, opts = {}) {
-  const token = localStorage.getItem('token')
-  const res = await fetch(BASE + path, {
-    method: opts.method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: 'Bearer ' + token } : {}),
-      ...(opts.headers || {}),
-    },
-    body: opts.body != null ? JSON.stringify(opts.body) : undefined,
-  })
-  const envelope = await res.json()
-  if (envelope.code !== 0) {
-    // 40100 统一踢回登录页（token 过期/无效）
-    if (envelope.code === 40100) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('role')
-      location.hash = '#/login'
-    }
-    throw new Error(envelope.message || '请求失败')
+export const demoStore = createDemoStore({ storage: globalThis.localStorage });
+const client = createClient({
+  mode: () => session.mode,
+  session: () => session,
+  demo: demoStore,
+});
+export async function api(path, opts) {
+  try {
+    return await client.request(path, opts);
+  } catch (e) {
+    if (e.code === 40100) logout();
+    throw e;
   }
-  return envelope.data
 }
-
-// ---------- Auth ----------
+const post = (path, body, headers) =>
+  api(path, { method: "POST", body, headers });
+const query = (params) =>
+  new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v != null && v !== ""),
+  ).toString();
 export const register = (phone, password, role, nickname) =>
-  api('/api/auth/register', { method: 'POST', body: { phone, password, role, nickname } })
-
+  post("/api/auth/register", { phone, password, role, nickname });
 export const login = (phone, password) =>
-  api('/api/auth/login', { method: 'POST', body: { phone, password } })
-
-export const me = () => api('/api/auth/me')
-
-// ---------- Shop ----------
-export const nearby = (lat, lng, radius = 5000, category = null) =>
-  api(`/api/shops/nearby?lat=${lat}&lng=${lng}&radius=${radius}${category ? '&category=' + category : ''}`)
-
-export const shopDetail = (id) => api(`/api/shops/${id}`)
-
-export const createShop = (body) =>
-  api('/api/merchant/shops', { method: 'POST', body })
-
-export const myShops = () => api('/api/merchant/shops')
-
-export const approveShop = (id) =>
-  api(`/api/admin/shops/${id}/approve`, { method: 'POST' })
-
-export const rejectShop = (id) =>
-  api(`/api/admin/shops/${id}/reject`, { method: 'POST' })
-
+  post("/api/auth/login", { phone, password });
+export const me = () => api("/api/auth/me");
+export const nearby = (lat, lng, radius = 5000, category) =>
+  api("/api/shops/nearby?" + query({ lat, lng, radius, category }));
+export const shopDetail = (id) => api(`/api/shops/${id}`);
+export const shopSkus = (id) => api(`/api/shops/${id}/skus`);
+export const shopCoupons = (id) => api(`/api/shops/${id}/coupons`);
+export const shopReviews = (id) => api(`/api/shops/${id}/reviews`);
+export const createShop = (body) => post("/api/merchant/shops", body);
+export const myShops = () => api("/api/merchant/shops");
 export const resubmitShop = (id, body) =>
-  api(`/api/merchant/shops/${id}/resubmit`, { method: 'POST', body })
-
-/** 店铺套餐（公开） */
-export const shopSkus = (shopId) => api(`/api/shops/${shopId}/skus`)
-
-/** 店铺可用券（公开） */
-export const shopCoupons = (shopId) => api(`/api/shops/${shopId}/coupons`)
-
-/** 店铺评价列表（公开，含商家回复） */
-export const shopReviews = (shopId) => api(`/api/shops/${shopId}/reviews`)
-
-// ---------- 优惠券 ----------
-export const claimCoupon = (couponId) =>
-  api(`/api/coupons/${couponId}/claim`, { method: 'POST' })
-
-export const myCoupons = (status = null) =>
-  api(`/api/coupons/mine${status ? '?status=' + status : ''}`)
-
-// ---------- 订单 ----------
-/** 下单：幂等键由前端生成（UUID），网络重试时带同一个 key */
-export const createOrder = (skuId, couponId = null) =>
-  api('/api/orders', {
-    method: 'POST',
-    body: { skuId, couponId },
-    headers: { 'Idempotency-Key': 'idem-' + crypto.randomUUID() },
-  })
-
-export const myOrders = (params = {}) => {
-  const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null)).toString()
-  return api('/api/orders' + (q ? '?' + q : ''))
-}
-
-export const payOrder = (id) => api(`/api/orders/${id}/pay`, { method: 'POST' })
-export const redeemOrder = (id) => api(`/api/orders/${id}/redeem`, { method: 'POST' })
-export const cancelOrder = (id) => api(`/api/orders/${id}/cancel`, { method: 'POST' })
-export const refundOrder = (id) => api(`/api/orders/${id}/refund`, { method: 'POST' })
-
-// ---------- 信息流 ----------
-export const feed = (scene = 'hot', lat = null, lng = null, explore = true, limit = 20) => {
-  const p = new URLSearchParams({ scene, explore, limit })
-  if (lat != null && lng != null) { p.set('lat', lat); p.set('lng', lng) }
-  return api('/api/feed?' + p.toString())
-}
-
-// ---------- Agent（经 Java 门面转发） ----------
-/** 对话式推荐（PRED 五步 + 护栏）：返回 {answer, shops, needClarify, evidenceIds, toolCalls} */
-export const agentRecommend = (message, lat, lng, sessionId = 's-0') =>
-  api('/api/agent/user/recommend', {
-    method: 'POST',
-    body: { message, lat, lng, sessionId },
-  })
-
-/** 生成评价草稿（CASDG）：返回 {draftId, scores, content, usedFacts} */
-export const agentReviewDraft = (orderId, userNote = null, preferScores = {}) =>
-  api('/api/agent/user/review-draft', {
-    method: 'POST',
-    body: { orderId, userNote, preferScores },
-  })
-
-/** 发布草稿（用户签字）：成功即写库 */
-export const agentPublishDraft = (draftId) =>
-  api(`/api/agent/user/review-draft/${draftId}/publish`, { method: 'POST' })
-
-/** 商家分析（三技能）：返回 {observations, hypotheses, suggestions} */
-export const agentAnalyze = (shopId, skill = 'ops') =>
-  api('/api/agent/merchant/analyze', {
-    method: 'POST',
-    body: { shopId, skill },
-  })
-
-/** 登录态快捷判断 */
-export const isLogged = () => !!localStorage.getItem('token')
-export const myRole = () => localStorage.getItem('role') || ''
+  post(`/api/merchant/shops/${id}/resubmit`, body);
+export const adminShops = (status = "pending") =>
+  api(`/api/admin/shops?${query({ status })}`);
+export const approveShop = (id) => post(`/api/admin/shops/${id}/approve`);
+export const rejectShop = (id) => post(`/api/admin/shops/${id}/reject`);
+export const claimCoupon = (id) => post(`/api/coupons/${id}/claim`);
+export const myCoupons = (status) =>
+  api("/api/coupons/mine?" + query({ status }));
+export const createOrder = (
+  skuId,
+  userCouponId = null,
+  idempotencyKey = crypto.randomUUID(),
+) =>
+  post(
+    "/api/orders",
+    { skuId, userCouponId },
+    { "Idempotency-Key": idempotencyKey },
+  );
+export const myOrders = (params = {}) => api("/api/orders?" + query(params));
+export const payOrder = (id) => post(`/api/orders/${id}/pay`);
+export const redeemOrder = (id) => post(`/api/orders/${id}/redeem`);
+export const cancelOrder = (id) => post(`/api/orders/${id}/cancel`);
+export const refundOrder = (id) => post(`/api/orders/${id}/refund`);
+export const merchantOrders = (params) =>
+  api("/api/merchant/orders?" + query(params || {}));
+export const merchantRedeem = (id) => post(`/api/merchant/orders/${id}/redeem`);
+export const merchantSkus = (shopId) =>
+  api("/api/merchant/skus?" + query({ shopId }));
+export const addSku = (body) => post("/api/merchant/skus", body);
+export const updateSku = (id, body) =>
+  api(`/api/merchant/skus/${id}`, { method: "PATCH", body });
+export const merchantCoupons = (shopId) =>
+  api("/api/merchant/coupons?" + query({ shopId }));
+export const addCoupon = (body) => post("/api/merchant/coupons", body);
+export const replyReview = (id, content) =>
+  post(`/api/reviews/${id}/replies`, { content });
+export const createReview = (body) => post("/api/reviews", body);
+export const feed = (
+  scene = "hot",
+  lat = null,
+  lng = null,
+  explore = true,
+  limit = 20,
+) => api("/api/feed?" + query({ scene, lat, lng, explore, limit }));
+export const agentRecommend = (message, lat, lng, sessionId) =>
+  post("/api/agent/user/recommend", { message, lat, lng, sessionId });
+export const agentReviewDraft = (orderId, userNote, preferScores = {}) =>
+  post("/api/agent/user/review-draft", { orderId, userNote, preferScores });
+export const agentPublishDraft = (draftId, content, scores) =>
+  post(`/api/agent/user/review-draft/${draftId}/publish`, { content, scores });
+export const agentAnalyze = (shopId, skill = "ops") =>
+  post("/api/agent/merchant/analyze", { shopId, skill });
+export const agentTraces = () => api("/api/agent/traces");
+export const isLogged = () => !!session.token;
+export const myRole = () => session.role;

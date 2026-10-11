@@ -21,6 +21,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     /** 我的订单（可按状态过滤；null = 全部） */
     List<Order> findByUserIdOrderByIdDesc(Long userId);
     List<Order> findByUserIdAndStatusOrderByIdDesc(Long userId, String status);
+    List<Order> findByShopIdInOrderByIdDesc(List<Long> shopIds);
 
     // ==================== 状态机 CAS 迁移（带前置条件） ====================
 
@@ -43,7 +44,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     int refundCas(@Param("id") Long id, @Param("userId") Long userId);
 
     /** 核销：PAID → REDEEMED（评价的唯一入口，ADR-011 规则2） */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Order o SET o.status = 'REDEEMED' " +
            "WHERE o.id = :id AND o.userId = :userId AND o.status = 'PAID'")
     int redeemCas(@Param("id") Long id, @Param("userId") Long userId);

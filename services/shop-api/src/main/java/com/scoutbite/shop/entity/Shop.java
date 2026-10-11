@@ -34,6 +34,9 @@ public class Shop {
     @Column(nullable = false, length = 20)
     private String city;
 
+    @Column(length = 255)
+    private String address;
+
     @Column(nullable = false)
     private double lat;
 
@@ -63,6 +66,8 @@ public class Shop {
     public void setCategory(String category) { this.category = category; }
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
     public double getLat() { return lat; }
     public void setLat(double lat) { this.lat = lat; }
     public double getLng() { return lng; }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
@@ -38,6 +39,19 @@ public class SkuController {
         this.shopRepo = shopRepo;
     }
 
+    @Operation(summary = "商家套餐列表（含下架，仅自有门店）")
+    @GetMapping
+    public ApiResponse<?> list(@RequestParam Long shopId, HttpServletRequest request) {
+        var identity = Identity.of(request);
+        if (identity.userId() == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(identity.role())) return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以查看套餐管理");
+        var shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null || !shop.getOwnerId().equals(identity.userId())) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只能查看自己的套餐");
+        }
+        return ApiResponse.ok(skuRepo.findByShopIdOrderById(shopId).stream().map(this::toDto).toList());
+    }
+
     /** 上架套餐：校验店铺归属 + 价格为正整数分 */
     @Operation(summary = "上架套餐（价格用分）")
     @PostMapping
@@ -56,6 +70,7 @@ public class SkuController {
         if (price <= 0 || price > 10_000_000) {
             return ApiResponse.fail(ErrorCode.PARAM_ERROR, "price 必须是 1~1000万分 之间的整数");
         }
+        if (stock < 0) return ApiResponse.fail(ErrorCode.PARAM_ERROR, "stock 必须是非负整数");
 
         // 店铺归属校验：只能给自己的店上架
         var shop = shopRepo.findById(shopId).orElse(null);
@@ -82,6 +97,8 @@ public class SkuController {
                                  @RequestBody Map<String, Object> body,
                                  HttpServletRequest request) {
         var identity = Identity.of(request);
+        if (identity.userId() == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(identity.role())) return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以管理套餐");
         Sku s = skuRepo.findById(id).orElse(null);
         if (s == null) return ApiResponse.fail(ErrorCode.PARAM_ERROR, "套餐不存在");
         // 归属校验：通过店铺间接校验
@@ -89,10 +106,17 @@ public class SkuController {
         if (shop == null || !shop.getOwnerId().equals(identity.userId())) {
             return ApiResponse.fail(ErrorCode.FORBIDDEN, "只能管理自己的套餐");
         }
-        if (body.containsKey("title")) s.setTitle((String) body.get("title"));
         Integer price = toInt(body.get("price"));
-        if (price != null) s.setPrice(price);
         Integer stock = toInt(body.get("stock"));
+        // 先校验所有数值再修改受 JPA 管理的实体，业务错误响应不能留下部分更新。
+        if (body.containsKey("price") && (price == null || price <= 0 || price > 10_000_000)) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "price 必须是 1~1000万分 之间的整数");
+        }
+        if (body.containsKey("stock") && (stock == null || stock < 0)) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "stock 必须是非负整数");
+        }
+        if (body.containsKey("title")) s.setTitle((String) body.get("title"));
+        if (price != null) s.setPrice(price);
         if (stock != null) s.setStock(stock);
         if (body.containsKey("onSale")) s.setOnSale((Boolean) body.get("onSale"));
         skuRepo.save(s);
@@ -112,7 +136,13 @@ public class SkuController {
     }
 
     private Long toLong(Object o) { return o instanceof Number n ? n.longValue() : null; }
-    private Integer toInt(Object o) { return o instanceof Number n ? n.intValue() : null; }
+    private Integer toInt(Object o) {
+        if (!(o instanceof Number number)) return null;
+        double value = number.doubleValue();
+        if (!Double.isFinite(value) || value != Math.rint(value)
+                || value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) return null;
+        return (int) value;
+    }
 
     /** 身份小助手（JwtFilter 塞进 request 的 attribute） */
     record Identity(Long userId, String role) {

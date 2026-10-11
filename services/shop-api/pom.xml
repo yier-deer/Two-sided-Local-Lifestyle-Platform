@@ -84,6 +84,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-redis</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!--
       仍未引（纪律延续）：
       - spring-boot-starter-security    ：永远不引，手写轻量 JWT 过滤器

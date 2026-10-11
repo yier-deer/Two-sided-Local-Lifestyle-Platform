@@ -24,10 +24,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Agent 门面（完全体）：前端调 AI 的唯一入口。
@@ -45,6 +46,7 @@ public class AgentFacadeController {
     private static final Logger log = LoggerFactory.getLogger(AgentFacadeController.class);
 
     private final RestClient restClient;
+    private final RestClient completionClient;
     private final String agentApiUrl;
     private final AgentTraceRepository traceRepo;
     private final ReviewService reviewService;
@@ -63,6 +65,10 @@ public class AgentFacadeController {
         factory.setConnectTimeout(5_000);
         factory.setReadTimeout(60_000);
         this.restClient = RestClient.builder().requestFactory(factory).build();
+        var completionFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        completionFactory.setConnectTimeout(2_000);
+        completionFactory.setReadTimeout(3_000);
+        this.completionClient = RestClient.builder().requestFactory(completionFactory).build();
     }
 
     /** 对话式推荐（）：转发 + trace */
@@ -85,17 +91,20 @@ public class AgentFacadeController {
 
     /**
      * 确认发布（签字权闭环）：写路径只在这里。
-     * 流程：用户 JWT → Python 取草稿（验归属+消费）→ ReviewService 原路二次校验 → 写库。
-     * 幂等：草稿发布即消费，二次 publish 取不到 → 明确报错，天然防连点双评。
+     * 流程：用户 JWT → Python 读取草稿（验归属）→ 校验用户确认的编辑 →
+     * ReviewService 按草稿原订单二次校验并写库 → 通知 Python 消费。
+     * 无请求体时保留原草稿；写库前失败保留草稿，数据库唯一索引兜底并发双评。
      */
     @Operation(summary = "确认发布草稿（用户签字，二次校验后写库）")
     @PostMapping("/api/agent/user/review-draft/{id}/publish")
-    public ApiResponse<?> publish(@PathVariable String id, HttpServletRequest request) {
+    public ApiResponse<?> publish(@PathVariable String id,
+                                  @RequestBody(required = false) Map<String, Object> edits,
+                                  HttpServletRequest request) {
         Long userId = requireUser(request);
         if (userId == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
 
         long start = System.currentTimeMillis();
-        // ① 取草稿：Python 验归属并消费（pop）
+        // ① 只读草稿：Python 验归属；用户不能通过编辑请求更换原订单。
         Map<String, Object> draftResp;
         try {
             draftResp = restClient.post()
@@ -106,32 +115,83 @@ public class AgentFacadeController {
                     .retrieve().body(Map.class);
         } catch (Exception e) {
             log.error("取草稿失败 {}: {}", id, e.getMessage());
-            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "Agent 服务暂时不可用：" + e.getMessage());
+            return ApiResponse.fail(50000, "Agent 服务暂时不可用，草稿未消费，请稍后重试");
         }
+        if (draftResp == null) return ApiResponse.fail(50000, "Agent 未返回草稿，请稍后重试");
         int code = draftResp != null && draftResp.get("code") != null
                 ? ((Number) draftResp.get("code")).intValue() : 50000;
         if (code != 0) {
             return ApiResponse.fail(code, String.valueOf(draftResp.get("message")));
         }
 
-        // ② 二次校验 + 写库（ReviewService 原路：归属/REDEEMED/唯一索引全过一遍——纵深防御）
-        Map<String, Object> draft = (Map<String, Object>) draftResp.get("data");
+        // ② 校验用户确认的正文/评分，再走原来的订单归属、核销与唯一索引校验。
         try {
+            if (!(draftResp.get("data") instanceof Map<?, ?> draft)) {
+                return ApiResponse.fail(50000, "Agent 草稿格式异常，请重新生成");
+            }
             Long orderId = ((Number) draft.get("orderId")).longValue();
-            @SuppressWarnings("unchecked")
-            Map<String, Integer> scores = (Map<String, Integer>) draft.get("scores");
-            String content = String.valueOf(draft.get("content"));
+            Map<String, Object> confirmation = edits == null ? Map.of() : edits;
+            Object contentValue = confirmation.containsKey("content")
+                    ? confirmation.get("content") : draft.get("content");
+            if (!(contentValue instanceof String content)
+                    || content.isBlank() || content.length() > 500) {
+                return ApiResponse.fail(ErrorCode.PARAM_ERROR, "正文 1~500 字");
+            }
+            Object scoresValue = confirmation.containsKey("scores")
+                    ? confirmation.get("scores") : draft.get("scores");
+            Map<String, Integer> scores = confirmedScores(scoresValue);
+            if (scores == null) {
+                return ApiResponse.fail(ErrorCode.PARAM_ERROR, "taste/wait/env 三维评分须为 1~5 的整数");
+            }
             Map<String, Object> review = reviewService.create(userId, orderId, scores, content, null);
-            saveTrace(userId, "review-publish", Map.of("draftId", id),
-                    List.of("agent:drafts.pop(" + id + ")"), review,
+
+            // ③ DB 已成功：消费通知为 best-effort，不能把已写库的成功反报为失败。
+            boolean consumed = completeDraft(userId, id);
+            List<String> toolCalls = new ArrayList<>();
+            toolCalls.add("agent:drafts.get(" + id + ")");
+            toolCalls.add("ReviewService.create(orderId=" + orderId + ")");
+            toolCalls.add(consumed ? "agent:drafts.pop(" + id + ")"
+                    : "agent:drafts.complete(" + id + "): unconfirmed");
+            saveTrace(userId, "review-publish", Map.of("draftId", id, "content", content, "scores", scores),
+                    toolCalls, review,
                     System.currentTimeMillis() - start);
             return ApiResponse.ok(review);
         } catch (OrderService.BizException e) {
             return ApiResponse.fail(e.code, e.getMessage());
         } catch (Exception e) {
             log.error("发布草稿写库失败 {}: {}", id, e.getMessage());
-            return ApiResponse.fail(50000, "发布失败，草稿已消费，请重新生成");
+            return ApiResponse.fail(50000, "发布失败，草稿已保留，可稍后重试");
         }
+    }
+
+    private Map<String, Integer> confirmedScores(Object value) {
+        if (!(value instanceof Map<?, ?> scores)
+                || !scores.keySet().equals(Set.of("taste", "wait", "env"))) return null;
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (String dimension : List.of("taste", "wait", "env")) {
+            if (!(scores.get(dimension) instanceof Number number)) return null;
+            double score = number.doubleValue();
+            if (score < 1 || score > 5 || score != Math.floor(score)) return null;
+            result.put(dimension, (int) score);
+        }
+        return result;
+    }
+
+    private boolean completeDraft(Long userId, String id) {
+        try {
+            Map<?, ?> result = completionClient.post()
+                    .uri(agentApiUrl + "/agent/review-draft/" + id + "/complete")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("X-User-Id", String.valueOf(userId))
+                    .body(Map.of()).retrieve().body(Map.class);
+            if (result != null && result.get("code") instanceof Number code && code.intValue() == 0) {
+                return true;
+            }
+            log.warn("评价已写库，但草稿消费未确认 id={}", id);
+        } catch (Exception e) {
+            log.warn("评价已写库，但草稿消费未确认 id={}: {}", id, e.getMessage());
+        }
+        return false;
     }
 
     /** 商家分析（三技能）：门面先做归属校验（只能分析自己的店）再转发 */

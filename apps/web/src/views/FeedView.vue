@@ -1,73 +1,139 @@
 <script setup>
-// 信息流页：scene 三队列（nearby/hot/new）+ explore 探索开关同屏对比
-// - explore 开关是请求级参数：新店（7日内过审）×2 加成——关掉后新店下沉
-// - 每条内容带 score：开关切换时分数变化肉眼可见（演示"探索位"的效果）
-import { onMounted, ref } from 'vue'
-import { feed } from '../api'
-
-const scene = ref('hot')
-const explore = ref(true)
-const items = ref([])
-const loading = ref(false)
-const err = ref('')
-
-onMounted(load)
-
-/** 拉信息流（游客可看） */
+import { onMounted, ref } from "vue";
+import Icon from "../components/Icon.vue";
+import UiState from "../components/UiState.vue";
+import { feed } from "../api.js";
+import { ui, session } from "../session.js";
+import { shopImage } from "../domain.js";
+const scene = ref("hot"),
+  explore = ref(true),
+  items = ref([]),
+  loading = ref(true),
+  error = ref("");
 async function load() {
-  loading.value = true
-  err.value = ''
+  loading.value = true;
+  error.value = "";
   try {
-    items.value = await feed(scene.value, null, null, explore.value, 20)
+    items.value = await feed(
+      scene.value,
+      ui.location.lat,
+      ui.location.lng,
+      explore.value,
+    );
   } catch (e) {
-    err.value = e.message
+    error.value = e.message;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-
-function switchScene(s) { scene.value = s; load() }
-function toggleExplore() { explore.value = !explore.value; load() }
-
-const sceneName = { nearby: '附近', hot: '热门', new: '新店' }
+function switchScene(value) {
+  scene.value = value;
+  load();
+}
+function toggle() {
+  explore.value = !explore.value;
+  load();
+}
+onMounted(load);
 </script>
-
 <template>
-  <div class="page wide">
-    <h2>信息流</h2>
-    <p class="sub">三队列 × 探索开关 —— 开启探索后新店获得曝光加成（score ×2）</p>
-
+  <div class="page-intro">
+    <div>
+      <div class="eyebrow">MOMENTS AROUND YOU</div>
+      <h1 style="margin-top: 8px">把值得的瞬间，分享出来。</h1>
+      <p>来自附近的消费评价，发现下一次出发的理由。</p>
+    </div>
+    <router-link to="/orders" class="btn small"
+      ><Icon name="MessageSquare" :size="15" />分享我的体验</router-link
+    >
+  </div>
+  <div class="feed-top">
     <div class="tabs">
-      <button v-for="(name, s) in sceneName" :key="s" :class="{ on: scene === s }" @click="switchScene(s)">
+      <button
+        v-for="(name, key) in {
+          hot: '热门推荐',
+          nearby: '附近发现',
+          new: '新店尝鲜',
+        }"
+        :key="key"
+        :class="{ active: scene === key }"
+        @click="switchScene(key)"
+      >
         {{ name }}
       </button>
     </div>
-
-    <label class="explore-toggle" style="margin:6px 0 14px">
-      <input type="checkbox" :checked="explore" @change="toggleExplore" />
-      探索模式（新店加成）{{ explore ? '· 开' : '· 关' }}
-    </label>
-
-    <p class="msg" v-if="err">{{ err }}</p>
-    <p class="hint" v-if="loading">加载中…</p>
-    <div class="empty" v-if="!loading && !items.length">这个队列暂时没有内容</div>
-
-    <div class="card feed-item" v-for="(it, i) in items" :key="i">
-      <div class="head">
-        <router-link v-if="it.shopId" :to="`/shop/${it.shopId}`" style="font-weight:700;font-size:14.5px">
-          {{ it.shopName }}
-        </router-link>
-        <span v-else style="font-weight:700">社区分享</span>
-        <span class="cat" v-if="it.isNew">新店</span>
-        <span class="muted" style="flex:1"></span>
-        <span class="score" v-if="it.score != null">score {{ it.score }}</span>
-      </div>
-      <div class="content">
-        <span v-if="it.contentType === 'REVIEW' && it.content?.scores">
-          口味{{ it.content.scores.taste ?? '-' }} / 等位{{ it.content.scores.wait ?? '-' }} / 环境{{ it.content.scores.env ?? '-' }} ·
-        </span>
-        {{ it.content?.text }}
-      </div>
+    <div class="explore-setting">
+      <button
+        class="toggle-button"
+        :class="{ on: explore }"
+        role="switch"
+        :aria-checked="explore"
+        aria-label="新店探索"
+        @click="toggle"
+      ></button
+      >发现新店 <span class="muted">{{ explore ? "已开启" : "已关闭" }}</span>
     </div>
   </div>
+  <UiState
+    :loading="loading"
+    :error="error"
+    :empty="!items.length"
+    title="这一页还在等待新故事"
+    text="换个场景，看看附近的其他分享。"
+    @retry="load"
+  />
+  <div v-if="!loading && !error" class="note-grid">
+    <article
+      v-for="(item, i) in items"
+      :key="item.contentId || i"
+      class="note-card"
+    >
+      <component
+        :is="item.shopId ? 'router-link' : 'div'"
+        :to="item.shopId ? `/shop/${item.shopId}` : undefined"
+        ><img
+          :src="
+            shopImage(
+              item.shop || { image: item.image, category: item.category },
+            )
+          "
+          alt="生活方式展示配图"
+          loading="lazy"
+      /></component>
+      <div class="note-content">
+        <span v-if="item.isNew" class="pill green" style="margin-bottom: 10px"
+          >新店发现</span
+        ><component
+          :is="item.shopId ? 'router-link' : 'div'"
+          :to="item.shopId ? `/shop/${item.shopId}` : undefined"
+          ><h3>{{ item.shopName || "社区生活分享" }}</h3></component
+        >
+        <p>
+          {{ item.content?.text || item.content || "一次值得记录的附近发现。" }}
+        </p>
+        <div class="note-author">
+          <span class="avatar teal">{{
+            (item.nickname || "探").slice(0, 1)
+          }}</span
+          >{{ item.nickname || "附近的体验者"
+          }}<router-link v-if="item.shopId" :to="`/shop/${item.shopId}`"
+            >查看店铺
+            <Icon name="ArrowUpRight" :size="11" style="display: inline"
+          /></router-link>
+        </div>
+      </div>
+    </article>
+  </div>
+  <details class="trace-details section-gap">
+    <summary>
+      了解新店探索机制{{ session.mode === "demo" ? " · 当前是示例对比" : "" }}
+    </summary>
+    <p>
+      开启后，为近期审核通过的新店增加探索权重；同店内容仍会去重。关闭后恢复基础排序，不承诺某家店必然出现。
+    </p>
+    <code v-for="it in items" :key="it.shopId"
+      >{{ it.shopName }} · {{ it.isNew ? "新店" : "常规店" }} · 排序分
+      {{ it.score }}</code
+    >
+  </details>
 </template>

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,12 +108,14 @@ public class ShopController {
         s.setName(name);
         s.setCategory(category);
         s.setCity((String) body.getOrDefault("city", "杭州"));
+        s.setAddress((String) body.get("address"));
         s.setLat(lat);
         s.setLng(lng);
         s.setStatus("pending");
         shopRepo.save(s);
-        return ApiResponse.ok(Map.of("id", s.getId(), "status", s.getStatus(),
-                "message", "已提交，等待管理员审核"));
+        Map<String, Object> created = toDto(s, true);
+        created.put("message", "已提交，等待管理员审核");
+        return ApiResponse.ok(created);
     }
 
     /** 我的小店：商家查自己名下店铺（含各状态——商家需要看到审核进展） */
@@ -121,6 +124,9 @@ public class ShopController {
     public ApiResponse<?> myShops(HttpServletRequest request) {
         Long userId = requireUser(request);
         if (userId == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(request.getAttribute("role"))) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以查看我的门店");
+        }
         List<Map<String, Object>> list = shopRepo.findByOwnerIdOrderByIdDesc(userId)
                 .stream().map(s -> toDto(s, true)).toList();
         return ApiResponse.ok(list);
@@ -143,6 +149,7 @@ public class ShopController {
         // 资料更新（传了才改）
         if (body.containsKey("name")) s.setName((String) body.get("name"));
         if (body.containsKey("category")) s.setCategory((String) body.get("category"));
+        if (body.containsKey("address")) s.setAddress((String) body.get("address"));
         Double lat = toDouble(body.get("lat"));
         if (lat != null) s.setLat(lat);
         Double lng = toDouble(body.get("lng"));
@@ -154,10 +161,26 @@ public class ShopController {
         if (rows == 0) {
             return ApiResponse.fail(ErrorCode.STATE_CONFLICT, "只有被驳回的店可以重新提交");
         }
-        return ApiResponse.ok(Map.of("id", id, "status", "pending"));
+        s.setStatus("pending");
+        return ApiResponse.ok(toDto(s, true));
     }
 
     // ==================== 管理员侧：审核（需登录 + ADMIN） ====================
+
+    @Operation(summary = "管理员店铺审核队列（按状态过滤，默认 pending）")
+    @GetMapping("/api/admin/shops")
+    public ApiResponse<?> adminShops(@RequestParam(defaultValue = "pending") String status,
+                                     HttpServletRequest request) {
+        String error = requireAdmin(request);
+        if (error != null) return ApiResponse.fail(ErrorCode.FORBIDDEN, error);
+        if (!List.of("pending", "approved", "rejected").contains(status)) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "status 只能是 pending/approved/rejected");
+        }
+        return ApiResponse.ok(shopRepo.findAll().stream()
+                .filter(s -> status.equals(s.getStatus()))
+                .sorted(Comparator.comparing(Shop::getId).reversed())
+                .map(s -> toDto(s, true)).toList());
+    }
 
     /** 审核通过：CAS 保证只有 pending 能过（防"已驳回又通过"的并发鬼畜） */
     @Operation(summary = "管理员审核通过")
@@ -193,6 +216,10 @@ public class ShopController {
     @Operation(summary = "店铺套餐列表（公开）")
     @GetMapping("/api/shops/{shopId}/skus")
     public ApiResponse<?> shopSkus(@PathVariable Long shopId) {
+        var shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null || !"approved".equals(shop.getStatus())) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "店铺不存在");
+        }
         return ApiResponse.ok(skuRepo.findByShopIdOrderById(shopId).stream()
                 .filter(com.scoutbite.shop.entity.Sku::isOnSale)
                 .map(this::skuDto).toList());
@@ -238,11 +265,13 @@ public class ShopController {
         m.put("name", s.getName());
         m.put("category", s.getCategory());
         m.put("city", s.getCity());
+        m.put("address", s.getAddress());
         m.put("lat", s.getLat());
         m.put("lng", s.getLng());
         m.put("status", s.getStatus());
         m.put("approvedAt", s.getApprovedAt() == null ? null : s.getApprovedAt().toString());
         if (owner) m.put("ownerId", s.getOwnerId());
+        m.putAll(geoService.presentation(s.getId()));
         return m;
     }
 }

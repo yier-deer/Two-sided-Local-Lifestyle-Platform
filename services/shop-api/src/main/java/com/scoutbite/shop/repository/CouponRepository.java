@@ -12,4 +12,5 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     /** 店铺的可用券列表（店页展示） */
     List<Coupon> findByShopIdAndEndAtAfter(Long shopId, java.time.Instant now);
+    List<Coupon> findByShopIdOrderByIdDesc(Long shopId);
 }

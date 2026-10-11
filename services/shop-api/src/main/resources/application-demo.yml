@@ -1,0 +1,5 @@
+# Live demonstration profile: allow time to explain checkout before payment.
+# Base profile keeps the 30-second timeout for reconciliation experiments.
+scoutbite:
+  order:
+    expire-seconds: 900
