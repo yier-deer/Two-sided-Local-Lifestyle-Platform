@@ -1,0 +1,1344 @@
+{
+  "version": 1,
+  "mode": "judge",
+  "model": "deepseek-chat",
+  "metadata": {
+    "fixtureRunId": "20261010T151346-556ace",
+    "judgeSource": "full-20261010-real.json"
+  },
+  "usage": {
+    "calls": 5,
+    "prompt_tokens": 10440,
+    "completion_tokens": 75,
+    "cost_yuan": 0.043
+  },
+  "autoPublishCheck": true,
+  "cases": [],
+  "judge": [
+    {
+      "q": "今晚想在附近吃火锅，两个人，人均100左右",
+      "usefulness": 5,
+      "comparison": 4,
+      "status": "PASSED"
+    },
+    {
+      "q": "想吃辣的川味火锅",
+      "usefulness": 5,
+      "comparison": 5,
+      "status": "PASSED"
+    },
+    {
+      "q": "推荐一家实惠的家庭聚餐火锅，人均120以内",
+      "usefulness": 5,
+      "comparison": 5,
+      "status": "PASSED"
+    },
+    {
+      "q": "生日请客，想要环境好点的火锅店，人均200以内",
+      "usefulness": 5,
+      "comparison": 5,
+      "status": "PASSED"
+    },
+    {
+      "q": "公司团建吃火锅，人多",
+      "usefulness": 5,
+      "comparison": 5,
+      "status": "PASSED"
+    }
+  ],
+  "judgeSamples": [
+    {
+      "id": "rec-001",
+      "question": "今晚想在附近吃火锅，两个人，人均100左右",
+      "answer": {
+        "sessionId": "eval",
+        "answer": "推荐老灶火锅和川味火锅，人均90-99元符合预算，评分3.6-3.7，双人套餐可选。潮牛火锅人均128元超预算，不推荐。",
+        "shops": [
+          {
+            "id": 10,
+            "name": "老灶火锅·西湖10号店",
+            "reason": "评分3.7，销量116，有双人套餐，人均91.6元，好评称上菜快汤底香",
+            "cons": "差评反映套餐不能用满100减15券"
+          },
+          {
+            "id": 11,
+            "name": "川味火锅·西湖11号店",
+            "reason": "评分3.6，销量346，有双人套餐，人均98.97元，好评称味道正性价比高",
+            "cons": "差评反映喊加水没人理"
+          }
+        ],
+        "pros": [
+          "评分3.7，销量116，有双人套餐，人均91.6元，好评称上菜快汤底香",
+          "评分3.6，销量346，有双人套餐，人均98.97元，好评称味道正性价比高"
+        ],
+        "cons": [
+          "差评反映套餐不能用满100减15券",
+          "差评反映喊加水没人理"
+        ],
+        "evidenceIds": [
+          "ev-10-114",
+          "ev-10-118",
+          "ev-11-130",
+          "ev-11-126"
+        ],
+        "needClarify": false,
+        "toolCalls": [
+          "GET /internal/users/2/profile",
+          "GET /internal/shops/search?category=HOTPOT&radius=5000",
+          "GET /internal/shops/43/evidence",
+          "GET /internal/shops/45/evidence",
+          "GET /internal/shops/47/evidence",
+          "GET /internal/shops/11/evidence",
+          "GET /internal/shops/10/evidence",
+          "GET /internal/shops/1/evidence"
+        ]
+      },
+      "evidence": [
+        {
+          "shopId": 43,
+          "name": "验收专用异店-20261010T150924-9c2f60",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 45,
+          "name": "验收专用异店-20261010T151346-556ace",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 47,
+          "name": "验收专用异店-20261010T151444-81b057",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 11,
+          "name": "川味火锅·西湖11号店",
+          "category": "HOTPOT",
+          "sales": 346,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9897,
+          "rating": 3.6,
+          "reviewCount": 12,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-11-130",
+              "score": 4.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-129",
+              "score": 4.3,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-128",
+              "score": 4.3,
+              "text": "环境不错，套餐分量实在，会回购。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-11-126",
+              "score": 3.3,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-125",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-122",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            }
+          ]
+        },
+        {
+          "shopId": 10,
+          "name": "老灶火锅·西湖10号店",
+          "category": "HOTPOT",
+          "sales": 116,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9160,
+          "rating": 3.7,
+          "reviewCount": 18,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-10-117",
+              "score": 4.0,
+              "text": "环境不错，套餐分量实在，会回购。"
+            },
+            {
+              "evidenceId": "ev-10-115",
+              "score": 5.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-10-114",
+              "score": 4.0,
+              "text": "上菜快，汤底香，体验超出预期。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-10-118",
+              "score": 2.3,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-116",
+              "score": 2.7,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-113",
+              "score": 2.3,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        },
+        {
+          "shopId": 1,
+          "name": "潮牛火锅·西湖1号店",
+          "category": "HOTPOT",
+          "sales": 182,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐",
+            "验收双人套餐-main-20261010T150924-9c2f60"
+          ],
+          "minPrice": 12800,
+          "rating": 4.0,
+          "reviewCount": 10,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-1-535",
+              "score": 4.0,
+              "text": "本人修改确认-20261010T151444-81b057：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-534",
+              "score": 4.0,
+              "text": "本人手写真实验收-20261010T151346-556ace：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-533",
+              "score": 4.0,
+              "text": "位置好找，出品稳定，值得二刷。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-1-527",
+              "score": 2.7,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rec-002",
+      "question": "想吃辣的川味火锅",
+      "answer": {
+        "sessionId": "eval",
+        "answer": "想吃辣川味火锅，优先看川味火锅·西湖11号店，销量346最高、有双人/四人套餐，但服务差评多；老灶火锅评分3.7、汤底香，但券不含套餐且排队久；潮牛火锅评分4.0但偏潮汕牛锅，非川味。",
+        "shops": [
+          {
+            "id": 11,
+            "name": "川味火锅·西湖11号店",
+            "reason": "川味火锅，销量346最高，有双人/四人套餐，好评称味道很正、套餐分量实在。",
+            "cons": "差评集中：喊加水没人理，服务一般。"
+          },
+          {
+            "id": 10,
+            "name": "老灶火锅·西湖10号店",
+            "reason": "评分3.7，好评称上菜快、汤底香、体验超出预期，有双人/四人套餐。",
+            "cons": "差评指满100减15券套餐不算，周五排队超一小时。"
+          },
+          {
+            "id": 1,
+            "name": "潮牛火锅·西湖1号店",
+            "reason": "评分4.0最高，好评称味道不错、出品稳定、值得二刷。",
+            "cons": "偏潮汕牛锅非川味，差评称周五排队超一小时。"
+          }
+        ],
+        "pros": [
+          "川味火锅，销量346最高，有双人/四人套餐，好评称味道很正、套餐分量实在。",
+          "评分3.7，好评称上菜快、汤底香、体验超出预期，有双人/四人套餐。",
+          "评分4.0最高，好评称味道不错、出品稳定、值得二刷。"
+        ],
+        "cons": [
+          "差评集中：喊加水没人理，服务一般。",
+          "差评指满100减15券套餐不算，周五排队超一小时。",
+          "偏潮汕牛锅非川味，差评称周五排队超一小时。"
+        ],
+        "evidenceIds": [
+          "ev-11-130",
+          "ev-11-128",
+          "ev-11-126",
+          "ev-10-114",
+          "ev-10-118",
+          "ev-10-113",
+          "ev-1-533",
+          "ev-1-527"
+        ],
+        "needClarify": false,
+        "toolCalls": [
+          "GET /internal/users/2/profile",
+          "GET /internal/shops/search?category=HOTPOT&radius=5000",
+          "GET /internal/shops/43/evidence",
+          "GET /internal/shops/45/evidence",
+          "GET /internal/shops/47/evidence",
+          "GET /internal/shops/11/evidence",
+          "GET /internal/shops/10/evidence",
+          "GET /internal/shops/1/evidence"
+        ]
+      },
+      "evidence": [
+        {
+          "shopId": 43,
+          "name": "验收专用异店-20261010T150924-9c2f60",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 45,
+          "name": "验收专用异店-20261010T151346-556ace",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 47,
+          "name": "验收专用异店-20261010T151444-81b057",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 11,
+          "name": "川味火锅·西湖11号店",
+          "category": "HOTPOT",
+          "sales": 346,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9897,
+          "rating": 3.6,
+          "reviewCount": 12,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-11-130",
+              "score": 4.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-129",
+              "score": 4.3,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-128",
+              "score": 4.3,
+              "text": "环境不错，套餐分量实在，会回购。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-11-126",
+              "score": 3.3,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-125",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-122",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            }
+          ]
+        },
+        {
+          "shopId": 10,
+          "name": "老灶火锅·西湖10号店",
+          "category": "HOTPOT",
+          "sales": 116,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9160,
+          "rating": 3.7,
+          "reviewCount": 18,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-10-117",
+              "score": 4.0,
+              "text": "环境不错，套餐分量实在，会回购。"
+            },
+            {
+              "evidenceId": "ev-10-115",
+              "score": 5.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-10-114",
+              "score": 4.0,
+              "text": "上菜快，汤底香，体验超出预期。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-10-118",
+              "score": 2.3,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-116",
+              "score": 2.7,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-113",
+              "score": 2.3,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        },
+        {
+          "shopId": 1,
+          "name": "潮牛火锅·西湖1号店",
+          "category": "HOTPOT",
+          "sales": 183,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐",
+            "验收双人套餐-main-20261010T150924-9c2f60"
+          ],
+          "minPrice": 12800,
+          "rating": 4.0,
+          "reviewCount": 10,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-1-535",
+              "score": 4.0,
+              "text": "本人修改确认-20261010T151444-81b057：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-534",
+              "score": 4.0,
+              "text": "本人手写真实验收-20261010T151346-556ace：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-533",
+              "score": 4.0,
+              "text": "位置好找，出品稳定，值得二刷。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-1-527",
+              "score": 2.7,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rec-003",
+      "question": "推荐一家实惠的家庭聚餐火锅，人均120以内",
+      "answer": {
+        "sessionId": "eval",
+        "answer": "推荐老灶火锅和川味火锅，人均都在120内，套餐分量实在；潮牛火锅评分最高但人均128略超预算。三家都有排队或服务问题，建议错峰。",
+        "shops": [
+          {
+            "id": 10,
+            "name": "老灶火锅·西湖10号店",
+            "reason": "minPrice 91.6元，评分3.7，评论称套餐分量实在、上菜快汤底香，满100减15。",
+            "cons": "券满100减15但套餐不算，且周五排队超一小时"
+          },
+          {
+            "id": 11,
+            "name": "川味火锅·西湖11号店",
+            "reason": "minPrice 98.97元，销量346，评论称味道正、套餐分量实在、性价比高。",
+            "cons": "多条差评反映喊加水没人理，服务一般"
+          },
+          {
+            "id": 1,
+            "name": "潮牛火锅·西湖1号店",
+            "reason": "评分4.0最高，评论称味道不错、环境整洁、出品稳定值得二刷。",
+            "cons": "minPrice 128元超预算，且排队等位较久"
+          }
+        ],
+        "pros": [
+          "minPrice 91.6元，评分3.7，评论称套餐分量实在、上菜快汤底香，满100减15。",
+          "minPrice 98.97元，销量346，评论称味道正、套餐分量实在、性价比高。",
+          "评分4.0最高，评论称味道不错、环境整洁、出品稳定值得二刷。"
+        ],
+        "cons": [
+          "券满100减15但套餐不算，且周五排队超一小时",
+          "多条差评反映喊加水没人理，服务一般",
+          "minPrice 128元超预算，且排队等位较久"
+        ],
+        "evidenceIds": [
+          "ev-10-117",
+          "ev-10-114",
+          "ev-10-118",
+          "ev-10-113",
+          "ev-11-130",
+          "ev-11-128",
+          "ev-11-126",
+          "ev-1-533",
+          "ev-1-527"
+        ],
+        "needClarify": false,
+        "toolCalls": [
+          "GET /internal/users/3/profile",
+          "GET /internal/shops/search?category=HOTPOT&radius=5000",
+          "GET /internal/shops/43/evidence",
+          "GET /internal/shops/45/evidence",
+          "GET /internal/shops/47/evidence",
+          "GET /internal/shops/11/evidence",
+          "GET /internal/shops/10/evidence",
+          "GET /internal/shops/1/evidence"
+        ]
+      },
+      "evidence": [
+        {
+          "shopId": 43,
+          "name": "验收专用异店-20261010T150924-9c2f60",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 45,
+          "name": "验收专用异店-20261010T151346-556ace",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 47,
+          "name": "验收专用异店-20261010T151444-81b057",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 11,
+          "name": "川味火锅·西湖11号店",
+          "category": "HOTPOT",
+          "sales": 346,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9897,
+          "rating": 3.6,
+          "reviewCount": 12,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-11-130",
+              "score": 4.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-129",
+              "score": 4.3,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-128",
+              "score": 4.3,
+              "text": "环境不错，套餐分量实在，会回购。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-11-126",
+              "score": 3.3,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-125",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-122",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            }
+          ]
+        },
+        {
+          "shopId": 10,
+          "name": "老灶火锅·西湖10号店",
+          "category": "HOTPOT",
+          "sales": 116,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9160,
+          "rating": 3.7,
+          "reviewCount": 18,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-10-117",
+              "score": 4.0,
+              "text": "环境不错，套餐分量实在，会回购。"
+            },
+            {
+              "evidenceId": "ev-10-115",
+              "score": 5.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-10-114",
+              "score": 4.0,
+              "text": "上菜快，汤底香，体验超出预期。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-10-118",
+              "score": 2.3,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-116",
+              "score": 2.7,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-113",
+              "score": 2.3,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        },
+        {
+          "shopId": 1,
+          "name": "潮牛火锅·西湖1号店",
+          "category": "HOTPOT",
+          "sales": 183,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐",
+            "验收双人套餐-main-20261010T150924-9c2f60"
+          ],
+          "minPrice": 12800,
+          "rating": 4.0,
+          "reviewCount": 10,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-1-535",
+              "score": 4.0,
+              "text": "本人修改确认-20261010T151444-81b057：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-534",
+              "score": 4.0,
+              "text": "本人手写真实验收-20261010T151346-556ace：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-533",
+              "score": 4.0,
+              "text": "位置好找，出品稳定，值得二刷。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-1-527",
+              "score": 2.7,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rec-004",
+      "question": "生日请客，想要环境好点的火锅店，人均200以内",
+      "answer": {
+        "sessionId": "eval",
+        "answer": "生日请客推荐潮牛火锅·西湖1号店，评分4.0最高、环境整洁，人均128元在预算内；川味火锅评分3.6、老灶3.7，环境评价一般且服务或排队有槽点，可作备选。",
+        "shops": [
+          {
+            "id": 1,
+            "name": "潮牛火锅·西湖1号店",
+            "reason": "评分4.0最高，好评称环境整洁、出品稳定值得二刷，人均128元符合预算。",
+            "cons": "差评提到周五晚上排队超过一小时"
+          },
+          {
+            "id": 10,
+            "name": "老灶火锅·西湖10号店",
+            "reason": "评分3.7，好评称环境不错、上菜快汤底香，人均91.6元最实惠。",
+            "cons": "差评称满100减15套餐不算，且周五排队超一小时"
+          },
+          {
+            "id": 11,
+            "name": "川味火锅·西湖11号店",
+            "reason": "评分3.6，好评称环境不错、套餐分量实在会回购，人均98.97元。",
+            "cons": "多条差评称喊加水没人理，服务一般"
+          }
+        ],
+        "pros": [
+          "评分4.0最高，好评称环境整洁、出品稳定值得二刷，人均128元符合预算。",
+          "评分3.7，好评称环境不错、上菜快汤底香，人均91.6元最实惠。",
+          "评分3.6，好评称环境不错、套餐分量实在会回购，人均98.97元。"
+        ],
+        "cons": [
+          "差评提到周五晚上排队超过一小时",
+          "差评称满100减15套餐不算，且周五排队超一小时",
+          "多条差评称喊加水没人理，服务一般"
+        ],
+        "evidenceIds": [
+          "ev-1-535",
+          "ev-1-533",
+          "ev-1-527",
+          "ev-10-117",
+          "ev-10-114",
+          "ev-10-118",
+          "ev-10-113",
+          "ev-11-128",
+          "ev-11-126"
+        ],
+        "needClarify": false,
+        "toolCalls": [
+          "GET /internal/users/2/profile",
+          "GET /internal/shops/search?category=HOTPOT&radius=5000",
+          "GET /internal/shops/43/evidence",
+          "GET /internal/shops/45/evidence",
+          "GET /internal/shops/47/evidence",
+          "GET /internal/shops/11/evidence",
+          "GET /internal/shops/10/evidence",
+          "GET /internal/shops/1/evidence"
+        ]
+      },
+      "evidence": [
+        {
+          "shopId": 43,
+          "name": "验收专用异店-20261010T150924-9c2f60",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 45,
+          "name": "验收专用异店-20261010T151346-556ace",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 47,
+          "name": "验收专用异店-20261010T151444-81b057",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 11,
+          "name": "川味火锅·西湖11号店",
+          "category": "HOTPOT",
+          "sales": 346,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9897,
+          "rating": 3.6,
+          "reviewCount": 12,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-11-130",
+              "score": 4.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-129",
+              "score": 4.3,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-128",
+              "score": 4.3,
+              "text": "环境不错，套餐分量实在，会回购。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-11-126",
+              "score": 3.3,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-125",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-122",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            }
+          ]
+        },
+        {
+          "shopId": 10,
+          "name": "老灶火锅·西湖10号店",
+          "category": "HOTPOT",
+          "sales": 116,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9160,
+          "rating": 3.7,
+          "reviewCount": 18,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-10-117",
+              "score": 4.0,
+              "text": "环境不错，套餐分量实在，会回购。"
+            },
+            {
+              "evidenceId": "ev-10-115",
+              "score": 5.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-10-114",
+              "score": 4.0,
+              "text": "上菜快，汤底香，体验超出预期。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-10-118",
+              "score": 2.3,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-116",
+              "score": 2.7,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-113",
+              "score": 2.3,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        },
+        {
+          "shopId": 1,
+          "name": "潮牛火锅·西湖1号店",
+          "category": "HOTPOT",
+          "sales": 183,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐",
+            "验收双人套餐-main-20261010T150924-9c2f60"
+          ],
+          "minPrice": 12800,
+          "rating": 4.0,
+          "reviewCount": 10,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-1-535",
+              "score": 4.0,
+              "text": "本人修改确认-20261010T151444-81b057：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-534",
+              "score": 4.0,
+              "text": "本人手写真实验收-20261010T151346-556ace：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-533",
+              "score": 4.0,
+              "text": "位置好找，出品稳定，值得二刷。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-1-527",
+              "score": 2.7,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rec-005",
+      "question": "公司团建吃火锅，人多",
+      "answer": {
+        "sessionId": "eval",
+        "answer": "团建人多优先选有四人套餐、销量高的店。川味火锅销量346最高但服务差评多；老灶火锅评分3.7、有四人套餐但券不适用套餐且排队久；潮牛火锅评分4.0最高、有四人套餐，但排队也久。",
+        "shops": [
+          {
+            "id": 1,
+            "name": "潮牛火锅·西湖1号店",
+            "reason": "评分4.0最高，有四人欢聚套餐，销量183，评论称味道不错、环境整洁。",
+            "cons": "周五晚上排队超过一小时"
+          },
+          {
+            "id": 11,
+            "name": "川味火锅·西湖11号店",
+            "reason": "销量346最高，有四人欢聚套餐，评论称套餐分量实在、会回购。",
+            "cons": "多条差评反映喊加水没人理"
+          },
+          {
+            "id": 10,
+            "name": "老灶火锅·西湖10号店",
+            "reason": "有四人欢聚套餐，评论称上菜快、汤底香，体验超出预期。",
+            "cons": "券满100减15但套餐不算"
+          }
+        ],
+        "pros": [
+          "评分4.0最高，有四人欢聚套餐，销量183，评论称味道不错、环境整洁。",
+          "销量346最高，有四人欢聚套餐，评论称套餐分量实在、会回购。",
+          "有四人欢聚套餐，评论称上菜快、汤底香，体验超出预期。"
+        ],
+        "cons": [
+          "周五晚上排队超过一小时",
+          "多条差评反映喊加水没人理",
+          "券满100减15但套餐不算"
+        ],
+        "evidenceIds": [
+          "ev-1-535",
+          "ev-1-534",
+          "ev-1-533",
+          "ev-1-527",
+          "ev-11-130",
+          "ev-11-129",
+          "ev-11-128",
+          "ev-11-126",
+          "ev-11-125",
+          "ev-11-122",
+          "ev-10-117",
+          "ev-10-115",
+          "ev-10-114",
+          "ev-10-118",
+          "ev-10-116",
+          "ev-10-113"
+        ],
+        "needClarify": false,
+        "toolCalls": [
+          "GET /internal/users/2/profile",
+          "GET /internal/shops/search?category=HOTPOT&radius=5000",
+          "GET /internal/shops/43/evidence",
+          "GET /internal/shops/45/evidence",
+          "GET /internal/shops/47/evidence",
+          "GET /internal/shops/11/evidence",
+          "GET /internal/shops/10/evidence",
+          "GET /internal/shops/1/evidence"
+        ]
+      },
+      "evidence": [
+        {
+          "shopId": 43,
+          "name": "验收专用异店-20261010T150924-9c2f60",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 45,
+          "name": "验收专用异店-20261010T151346-556ace",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 47,
+          "name": "验收专用异店-20261010T151444-81b057",
+          "category": "HOTPOT",
+          "sales": 0,
+          "skuTitles": [],
+          "minPrice": 0,
+          "rating": null,
+          "reviewCount": 0,
+          "coupon": {
+            "title": "验收满100减15-foreign",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [],
+          "negativeReviews": []
+        },
+        {
+          "shopId": 11,
+          "name": "川味火锅·西湖11号店",
+          "category": "HOTPOT",
+          "sales": 346,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9897,
+          "rating": 3.6,
+          "reviewCount": 12,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-11-130",
+              "score": 4.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-129",
+              "score": 4.3,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-11-128",
+              "score": 4.3,
+              "text": "环境不错，套餐分量实在，会回购。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-11-126",
+              "score": 3.3,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-125",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            },
+            {
+              "evidenceId": "ev-11-122",
+              "score": 2.7,
+              "text": "服务一般，喊加水没人理，体验打折。"
+            }
+          ]
+        },
+        {
+          "shopId": 10,
+          "name": "老灶火锅·西湖10号店",
+          "category": "HOTPOT",
+          "sales": 116,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐"
+          ],
+          "minPrice": 9160,
+          "rating": 3.7,
+          "reviewCount": 18,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-10-117",
+              "score": 4.0,
+              "text": "环境不错，套餐分量实在，会回购。"
+            },
+            {
+              "evidenceId": "ev-10-115",
+              "score": 5.0,
+              "text": "味道很正，服务热情，性价比高。"
+            },
+            {
+              "evidenceId": "ev-10-114",
+              "score": 4.0,
+              "text": "上菜快，汤底香，体验超出预期。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-10-118",
+              "score": 2.3,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-116",
+              "score": 2.7,
+              "text": "券说是满100减15，结账才发现套餐不算，有点失望。"
+            },
+            {
+              "evidenceId": "ev-10-113",
+              "score": 2.3,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        },
+        {
+          "shopId": 1,
+          "name": "潮牛火锅·西湖1号店",
+          "category": "HOTPOT",
+          "sales": 183,
+          "skuTitles": [
+            "双人套餐",
+            "四人欢聚套餐",
+            "验收双人套餐-main-20261010T150924-9c2f60"
+          ],
+          "minPrice": 12800,
+          "rating": 4.0,
+          "reviewCount": 10,
+          "coupon": {
+            "title": "满100减15",
+            "threshold": 10000,
+            "amount": 1500
+          },
+          "positiveReviews": [
+            {
+              "evidenceId": "ev-1-535",
+              "score": 4.0,
+              "text": "本人修改确认-20261010T151444-81b057：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-534",
+              "score": 4.0,
+              "text": "本人手写真实验收-20261010T151346-556ace：味道不错，服务热情，环境整洁，排队等位较久。"
+            },
+            {
+              "evidenceId": "ev-1-533",
+              "score": 4.0,
+              "text": "位置好找，出品稳定，值得二刷。"
+            }
+          ],
+          "negativeReviews": [
+            {
+              "evidenceId": "ev-1-527",
+              "score": 2.7,
+              "text": "周五晚上排队超过一小时，建议错峰。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

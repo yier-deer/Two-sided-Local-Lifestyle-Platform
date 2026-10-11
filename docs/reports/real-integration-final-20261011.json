@@ -1,0 +1,419 @@
+{
+  "version": 1,
+  "runId": "20261010T160549-b2d031",
+  "shopUrl": "http://localhost:8081",
+  "startedAt": "2026-10-10T16:05:49.792255+00:00",
+  "updatedAt": "2026-10-10T16:06:06.115079+00:00",
+  "status": "FAIL",
+  "counts": {
+    "PASS": 12,
+    "FAIL": 1,
+    "SKIP": 0
+  },
+  "resources": {
+    "created": {
+      "users": [
+        {
+          "id": 219,
+          "phone": "13880569101",
+          "role": "USER"
+        },
+        {
+          "id": 220,
+          "phone": "13880569102",
+          "role": "USER"
+        },
+        {
+          "id": 221,
+          "phone": "13880569103",
+          "role": "MERCHANT"
+        }
+      ],
+      "skus": [
+        {
+          "id": 99,
+          "shopId": 1,
+          "label": "main"
+        },
+        {
+          "id": 100,
+          "shopId": 48,
+          "label": "pending"
+        }
+      ],
+      "coupons": [
+        {
+          "id": 65,
+          "shopId": 1,
+          "label": "main"
+        },
+        {
+          "id": 66,
+          "shopId": 48,
+          "label": "pending"
+        },
+        {
+          "id": 67,
+          "shopId": 49,
+          "label": "foreign"
+        },
+        {
+          "id": 69,
+          "shopId": 1,
+          "label": "cancel"
+        },
+        {
+          "id": 70,
+          "shopId": 1,
+          "label": "refund"
+        }
+      ],
+      "shops": [
+        {
+          "id": 48,
+          "ownerId": 5,
+          "label": "待审"
+        },
+        {
+          "id": 49,
+          "ownerId": 221,
+          "label": "异店"
+        }
+      ],
+      "userCoupons": [
+        {
+          "id": 118,
+          "couponId": 67,
+          "userId": 219
+        },
+        {
+          "id": 119,
+          "couponId": 65,
+          "userId": 219
+        },
+        {
+          "id": 120,
+          "couponId": 69,
+          "userId": 219
+        },
+        {
+          "id": 121,
+          "couponId": 70,
+          "userId": 219
+        }
+      ],
+      "orders": [
+        {
+          "id": 21,
+          "userId": 219,
+          "skuId": 99,
+          "idempotencyKey": "vr-20261010T160549-b2d031-main"
+        },
+        {
+          "id": 22,
+          "userId": 219,
+          "skuId": 99,
+          "idempotencyKey": "vr-20261010T160549-b2d031-cancel"
+        },
+        {
+          "id": 23,
+          "userId": 219,
+          "skuId": 99,
+          "idempotencyKey": "vr-20261010T160549-b2d031-refund"
+        }
+      ],
+      "reviews": [
+        {
+          "id": 538,
+          "orderId": 21,
+          "source": "edited Agent confirmation"
+        }
+      ],
+      "replies": [
+        {
+          "id": 5,
+          "reviewId": 538
+        }
+      ]
+    },
+    "userId": 219,
+    "otherUserId": 220,
+    "shopId": 1,
+    "skuId": 99,
+    "couponId": 65,
+    "pendingShopId": 48,
+    "foreignShopId": 49,
+    "orderId": 21,
+    "userCouponId": 119,
+    "reviewId": 538
+  },
+  "checks": [
+    {
+      "name": "real service and independent read readiness",
+      "status": "PASS",
+      "evidence": {
+        "shop": "UP",
+        "postgres": "SELECT 1",
+        "redis": "PONG",
+        "databaseMode": "native"
+      },
+      "elapsedMs": 140
+    },
+    {
+      "name": "seed accounts and dedicated per-run API records",
+      "status": "PASS",
+      "evidence": {
+        "created": {
+          "users": [
+            {
+              "id": 219,
+              "phone": "13880569101",
+              "role": "USER"
+            },
+            {
+              "id": 220,
+              "phone": "13880569102",
+              "role": "USER"
+            },
+            {
+              "id": 221,
+              "phone": "13880569103",
+              "role": "MERCHANT"
+            }
+          ],
+          "skus": [
+            {
+              "id": 99,
+              "shopId": 1,
+              "label": "main"
+            },
+            {
+              "id": 100,
+              "shopId": 48,
+              "label": "pending"
+            }
+          ],
+          "coupons": [
+            {
+              "id": 65,
+              "shopId": 1,
+              "label": "main"
+            },
+            {
+              "id": 66,
+              "shopId": 48,
+              "label": "pending"
+            },
+            {
+              "id": 67,
+              "shopId": 49,
+              "label": "foreign"
+            }
+          ],
+          "shops": [
+            {
+              "id": 48,
+              "ownerId": 5,
+              "label": "待审"
+            },
+            {
+              "id": 49,
+              "ownerId": 221,
+              "label": "异店"
+            }
+          ]
+        },
+        "userId": 219,
+        "otherUserId": 220,
+        "shopId": 1,
+        "skuId": 99,
+        "couponId": 65,
+        "pendingShopId": 48,
+        "foreignShopId": 49
+      },
+      "elapsedMs": 844
+    },
+    {
+      "name": "pending shop public visibility and checkout gate",
+      "status": "PASS",
+      "evidence": {
+        "pendingShopId": 48,
+        "publicResources": "rejected",
+        "stock": 5
+      },
+      "elapsedMs": 359
+    },
+    {
+      "name": "cross-role, cross-shop, cross-user coupon permissions",
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "/api/merchant/orders?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/orders?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/skus?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/skus?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/coupons?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/coupons?shopId=1",
+          "code": 40300
+        },
+        {
+          "path": "/api/admin/shops/48/approve",
+          "code": 40300
+        },
+        {
+          "path": "/api/merchant/skus/99",
+          "code": 40300
+        },
+        {
+          "path": "/api/orders",
+          "code": 40001
+        },
+        {
+          "path": "/api/agent/merchant/analyze",
+          "code": 40300
+        },
+        {
+          "path": "/api/agent/merchant/analyze",
+          "code": 40300
+        }
+      ],
+      "elapsedMs": 797
+    },
+    {
+      "name": "claim, coupon amount, idempotency, payment gate and merchant redeem",
+      "status": "PASS",
+      "evidence": {
+        "orderId": 21,
+        "priceSnapshot": 11300,
+        "stock": 24,
+        "sales": 1,
+        "couponStatus": "USED"
+      },
+      "elapsedMs": 922
+    },
+    {
+      "name": "unpaid cancel restores stock and frozen coupon only once",
+      "status": "PASS",
+      "evidence": {
+        "orderId": 22,
+        "skuStock": 24,
+        "couponStatus": "UNUSED",
+        "repeatRejected": true
+      },
+      "elapsedMs": 875
+    },
+    {
+      "name": "paid refund restores stock and used coupon only once",
+      "status": "PASS",
+      "evidence": {
+        "orderId": 23,
+        "skuStock": 24,
+        "couponStatus": "UNUSED",
+        "repeatRejected": true
+      },
+      "elapsedMs": 1235
+    },
+    {
+      "name": "real review draft, edited confirmation and draft traces",
+      "status": "PASS",
+      "evidence": {
+        "draftId": "d-34f75013f063",
+        "reviewId": 538,
+        "draftTraceId": 14,
+        "publishTraceId": 17
+      },
+      "elapsedMs": 1500
+    },
+    {
+      "name": "merchant reply and final HTTP/DB reconciliation",
+      "status": "PASS",
+      "evidence": {
+        "orderId": 21,
+        "status": "REVIEWED",
+        "reviewId": 538,
+        "replyId": 5,
+        "dbMatched": true
+      },
+      "elapsedMs": 515
+    },
+    {
+      "name": "real recommendation and evidence/trace references",
+      "status": "PASS",
+      "evidence": {
+        "shopIds": [
+          10,
+          11
+        ],
+        "evidenceIds": [
+          "ev-10-117",
+          "ev-10-115",
+          "ev-10-114",
+          "ev-10-118",
+          "ev-10-116",
+          "ev-10-113",
+          "ev-11-130",
+          "ev-11-129",
+          "ev-11-128",
+          "ev-11-126",
+          "ev-11-125",
+          "ev-11-122"
+        ],
+        "traceId": 18
+      },
+      "elapsedMs": 3641
+    },
+    {
+      "name": "real merchant ops three-layer analysis",
+      "status": "PASS",
+      "evidence": {
+        "skill": "ops",
+        "layers": {
+          "observations": 4,
+          "hypotheses": 2,
+          "suggestions": 2
+        },
+        "traceId": 21
+      },
+      "elapsedMs": 2031
+    },
+    {
+      "name": "real merchant reviews three-layer analysis",
+      "status": "PASS",
+      "evidence": {
+        "skill": "reviews",
+        "layers": {
+          "observations": 4,
+          "hypotheses": 2,
+          "suggestions": 2
+        },
+        "traceId": 22
+      },
+      "elapsedMs": 1828
+    },
+    {
+      "name": "real merchant competitors three-layer analysis",
+      "status": "FAIL",
+      "error": "POST /api/agent/merchant/analyze: code=42201, message=护栏拦截：观察句中的数字 5 不在工具数据中（疑似编造）",
+      "elapsedMs": 1641
+    }
+  ],
+  "limitations": [
+    "Model checks test observable contracts and referenced records, not universal freedom from hallucinations.",
+    "Per-run API records are intentionally retained. Existing data is never reset."
+  ]
+}

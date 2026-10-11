@@ -1,9 +1,9 @@
-# drafts.py —— 评价草稿仓：把 AI 写好的评价草稿暂存起来，等用户「签字」后取走。
+# drafts.py —— 评价草稿仓：等用户「签字」写库成功后才消费。
 #
 # 【这个文件是什么】
 #   AI 起草评价后不能直接写库（那违反「签字权在用户」原则）。
 #   所以先把草稿存在这个「仓」里，返回一个 draftId 给前端；
-#   用户点「确认发布」时，Java 门面拿 draftId 来这里取走草稿（取走即删除），再写库。
+#   用户点「确认发布」时，Java 门面先读取并写库；成功后才消费草稿。
 #
 # 【为什么要进程内字典，而不是建数据库表（面试常问）】
 #   草稿的生命周期是「分钟级、单用户、待签字」——为此建表（迁移/清理/状态同步）成本 > 收益。
@@ -52,8 +52,18 @@ def create(user_id: int, order_id: int, scores: dict, content: str, used_facts: 
     return draft_id
 
 
+def get(draft_id: str, user_id: int) -> dict | None:
+    """Read an owned draft without consuming it; failed publication remains retryable."""
+    with _lock:
+        d = _store.get(draft_id)
+        if d is None or d["userId"] != user_id:
+            return None
+        # Detached values prevent a caller from modifying the stored AI draft.
+        return {**d, "scores": dict(d["scores"]), "usedFacts": list(d["usedFacts"])}
+
+
 def pop(draft_id: str, user_id: int) -> dict | None:
-    """取走并删除（发布即消费）。归属不符返回 None（不算消费——防误删他人草稿）。
+    """写库成功后取走并删除。归属不符返回 None（防误删他人草稿）。
 
     参数：
       draft_id —— 要取的草稿 ID
@@ -61,7 +71,7 @@ def pop(draft_id: str, user_id: int) -> dict | None:
     返回：草稿内容 dict；取不到或不属于该用户时返回 None
 
     三个关键行为（面试可讲）：
-      ① 取走即删除 → 连点两次发布，第二次取不到 → 天然防「重复发布/双评」
+      ① 写库成功后消费 → 正常重试取不到；并发写由数据库唯一索引拦截
       ② 不是你的草稿 → 返回 None 但【不删除】→ 防止有人用别人的 draftId 恶意消费掉它
       ③ 完全不存在 → 也返回 None（调用方靠 exists() 区分这两种情况，给不同错误码）
     """
@@ -82,4 +92,5 @@ def exists(draft_id: str) -> bool:
       pop 返回 None 且 exists 为 True  → 草稿还在，说明是别人的 → 40300
       pop 返回 None 且 exists 为 False → 草稿已被消费/不存在 → 40001
     """
-    return draft_id in _store     # in 运算符：判断键是否在字典里
+    with _lock:
+        return draft_id in _store

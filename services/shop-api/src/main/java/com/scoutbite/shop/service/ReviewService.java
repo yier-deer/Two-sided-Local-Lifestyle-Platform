@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,6 +58,7 @@ public class ReviewService {
      * 发布评价。四道校验顺序：归属 → REDEEMED → 分数/正文格式 → 唯一索引。
      * @param scores 多维分数（如 {taste:5, wait:3, env:4}），每维 1~5
      */
+    @Transactional
     public Map<String, Object> create(Long userId, Long orderId,
                                       Map<String, Integer> scores,
                                       String content, String imageKeysCsv) {
@@ -64,6 +66,9 @@ public class ReviewService {
         Order order = orderRepo.findById(orderId).orElse(null);
         if (order == null || !order.getUserId().equals(userId)) {
             throw new OrderService.BizException(ErrorCode.PARAM_ERROR, "订单不存在");
+        }
+        if (Order.REVIEWED.equals(order.getStatus())) {
+            throw new OrderService.BizException(ErrorCode.IDEMPOTENT_CONFLICT, "该订单已评价过");
         }
         // ② 状态校验：只有核销过（真实消费）才能评
         if (!Order.REDEEMED.equals(order.getStatus())) {
@@ -106,6 +111,8 @@ public class ReviewService {
             log.info("订单 {} 并发重复评价，被唯一索引拦截", orderId);
             throw new OrderService.BizException(ErrorCode.IDEMPOTENT_CONFLICT, "该订单已评价过");
         }
+        order.setStatus(Order.REVIEWED);
+        orderRepo.save(order);
         log.info("订单 {} 评价发布成功（review={}）", orderId, r.getId());
         return toDto(r, null);
     }

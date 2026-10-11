@@ -20,7 +20,7 @@
 #   Field(default_factory=list)→ 默认值用「调用 list() 生成空列表」，避免多个对象共享同一个列表（Python 经典坑）
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictInt
 
 
 # ---------- 用户侧 Agent：推荐 ----------
@@ -61,7 +61,7 @@ class ReviewDraftRequest(BaseModel):
     orderId: int = Field(description="已核销的订单 ID")   # 只有 REDEEMED 状态的订单能过校验
     userNote: str | None = Field(default=None, description="用户随手记的原话，可选")
     imageKeys: list[str] = Field(default_factory=list, description="MinIO 图片 key 列表")
-    preferScores: dict[str, int] = Field(default_factory=dict, description="用户预设打分倾向，如 taste=5")
+    preferScores: dict[str, StrictInt] = Field(default_factory=dict, description="用户预设打分倾向，如 taste=5；拒绝 bool/字符串/小数自动转换")
 
 
 class ReviewDraft(BaseModel):

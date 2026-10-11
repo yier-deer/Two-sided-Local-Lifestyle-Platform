@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
@@ -43,6 +44,28 @@ public class CouponController {
         this.userCouponRepo = userCouponRepo;
         this.shopRepo = shopRepo;
         this.couponService = couponService;
+    }
+
+    @Operation(summary = "商家优惠券列表（含领取/使用统计，仅自有门店）")
+    @GetMapping("/api/merchant/coupons")
+    public ApiResponse<?> merchantCoupons(@RequestParam Long shopId, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(request.getAttribute("role"))) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以查看优惠券管理");
+        }
+        var shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null || !shop.getOwnerId().equals(userId)) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只能查看自己的优惠券");
+        }
+        return ApiResponse.ok(couponRepo.findByShopIdOrderByIdDesc(shopId).stream().map(c -> {
+            Map<String, Object> dto = toDto(c);
+            long claimedCount = userCouponRepo.countByCouponId(c.getId());
+            dto.put("claimedCount", claimedCount);
+            dto.put("usedCount", userCouponRepo.countByCouponIdAndStatus(c.getId(), UserCoupon.USED));
+            dto.put("remaining", Math.max(0L, c.getTotal() - claimedCount));
+            return dto;
+        }).toList());
     }
 
     /** 商家建券：写 DB 模板 + 初始化 Redis 余量镜像 */
@@ -90,6 +113,10 @@ public class CouponController {
     @Operation(summary = "店铺可用券（公开）")
     @GetMapping("/api/shops/{shopId}/coupons")
     public ApiResponse<?> listByShop(@PathVariable Long shopId) {
+        var shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null || !"approved".equals(shop.getStatus())) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "店铺不存在");
+        }
         List<Map<String, Object>> list = couponRepo
                 .findByShopIdAndEndAtAfter(shopId, Instant.now())
                 .stream().map(this::toDto).toList();
@@ -127,6 +154,9 @@ public class CouponController {
         }
         return ApiResponse.ok(list.stream().map(c -> {
             Map<String, Object> m = new LinkedHashMap<>();
+            couponRepo.findById(c.getCouponId()).ifPresent(template -> m.putAll(toDto(template)));
+            // 券模板 id 与持券记录 id 不同；下单使用持券 id，保留原字段兼容旧客户端。
+            m.put("id", c.getId());
             m.put("userCouponId", c.getId());
             m.put("couponId", c.getCouponId());
             m.put("status", c.getStatus());
@@ -143,6 +173,9 @@ public class CouponController {
         m.put("threshold", c.getThreshold());
         m.put("amount", c.getAmount());
         m.put("total", c.getTotal());
+        m.put("perUserLimit", c.getPerUserLimit());
+        m.put("startAt", c.getStartAt().toString());
+        m.put("endAt", c.getEndAt().toString());
         return m;
     }
 

@@ -26,6 +26,7 @@
 #   json.dumps(x, ensure_ascii=False)  → 对象转 JSON 字符串（False = 保留中文不转 \uXXXX）
 import json
 import re
+from decimal import Decimal
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -56,6 +57,7 @@ class MState(TypedDict, total=False):
     data: dict                 # 工具拉到的原始数据
     data_text: str             # 上面的 JSON 文本（喂给模型 & 护栏比对用）
     tool_calls: list           # 工具调用清单
+    observation_facts: dict    # 各技能原始字段对应的合法观察句，模型只能按 ID 选择
     # 输出
     observations: list
     hypotheses: list
@@ -70,6 +72,98 @@ SKILL_LABEL = {
     "reviews": "评论诊断（正负观点聚类）",
     "competitors": "竞品快照（同品类同半径公开信息）",
 }
+
+
+def _format_number(value) -> str:
+    return format(Decimal(str(value)).normalize(), "f")
+
+
+def metric_observations(data: dict) -> dict:
+    """Bind each ops observation to one real source field; never derive ratios."""
+    templates = {
+        "totalValidOrders": "累计有效订单{value}笔",
+        "totalCustomers": "累计消费用户{value}人",
+        "newCustomers7d": "近{window}日新客{value}人",
+        "repeatBuyers": "复购用户{value}人",
+        "couponOrderShare": "用券订单占比{value}%",
+        "impressions7d": "近{window}日曝光{value}次",
+        "reviewCount": "累计评价{value}条",
+        "avgRating": "平均评分{value}分",
+    }
+    result = {}
+    for key, template in templates.items():
+        value = data.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if "{window}" in template and not isinstance(data.get("windowDays"), (int, float)):
+            continue
+        result[key] = template.format(value=_format_number(value), window=_format_number(data.get("windowDays", 0)))
+    return result
+
+
+def review_observations(data: list) -> dict:
+    """Bind each review bucket to its count, score and quoted source reviews."""
+    facts = {}
+    for index, bucket in enumerate(data):
+        if not isinstance(bucket, dict) or not bucket.get("topic") or bucket.get("count") is None:
+            continue
+        samples = []
+        for sample in bucket.get("samples") or []:
+            if not isinstance(sample, dict) or not sample.get("text"):
+                continue
+            quote = f"评价#{sample.get('reviewId')}：{sample['text']}"
+            if sample.get("score") is not None:
+                quote += f"（单条评分{_format_number(sample['score'])}分）"
+            samples.append(quote)
+        if not samples:
+            continue
+        score = bucket.get("avgScore")
+        score_part = f"，桶内均分{_format_number(score)}分" if score is not None else ""
+        facts[f"topic-{index}"] = (
+            f"观点‘{bucket['topic']}’共{_format_number(bucket['count'])}条{score_part}；"
+            + "；".join(samples)
+        )
+    return facts
+
+
+def competitor_observations(data: list) -> dict:
+    """Bind each competitor card to only fields returned by the public snapshot."""
+    facts = {}
+    for index, card in enumerate(data):
+        if not isinstance(card, dict) or not card.get("name"):
+            continue
+        parts = [f"竞品‘{card['name']}’"]
+        if card.get("distanceMeters") is not None:
+            parts.append(f"距离{_format_number(card['distanceMeters'])}米")
+        if card.get("rating") is not None:
+            parts.append(f"评分{_format_number(card['rating'])}")
+        if card.get("sales") is not None:
+            parts.append(f"销量{_format_number(card['sales'])}")
+        if card.get("reviewCount") is not None:
+            parts.append(f"评价{_format_number(card['reviewCount'])}条")
+        if card.get("minSkuPrice") is not None:
+            parts.append(f"最低套餐价{_format_number(card['minSkuPrice'])}分")
+        if card.get("hasCoupon") is not None:
+            parts.append("有在售券" if card["hasCoupon"] else "无在售券")
+        if card.get("topNegativeTopic"):
+            parts.append(f"高频差评主题{card['topNegativeTopic']}")
+        facts[f"competitor-{index}"] = "；".join(parts)
+    return facts
+
+
+def _source_numbers(value) -> set[Decimal]:
+    """Exact numeric tokens, so 40.0 == 40.00 but 10 is not part of 100."""
+    if isinstance(value, bool) or value is None:
+        return set()
+    if isinstance(value, (int, float, Decimal)):
+        return {Decimal(str(value))}
+    if isinstance(value, dict):
+        return set().union(*(_source_numbers(item) for item in value.values()))
+    if isinstance(value, (list, tuple)):
+        return set().union(*(_source_numbers(item) for item in value))
+    if isinstance(value, str):
+        return {Decimal(match) for match in re.findall(r"(?<![\d.])-?\d+(?:\.\d+)?(?![\d.])", value)}
+    return set()
 
 
 def collect(state: MState) -> dict:
@@ -100,7 +194,12 @@ def collect(state: MState) -> dict:
         return {"error_code": 40001, "error_message": "该店铺暂无可分析的数据"}
     # 把 skill 映射成接口路径片段，用于生成工具调用记录（trace 展示用）
     tool = {"ops": "metrics", "reviews": "review-clusters", "competitors": "competitors"}[skill]
+    facts = metric_observations(data) if skill == "ops" else (
+        review_observations(data) if skill == "reviews" else competitor_observations(data))
+    if not facts:
+        return {"error_code": 40001, "error_message": "该店铺暂无可分析的可引用事实"}
     return {"data": data, "data_text": json.dumps(data, ensure_ascii=False),
+            "observation_facts": facts,
             "tool_calls": [f"GET /internal/merchant/{shop_id}/{tool}"]}
 
 
@@ -118,6 +217,24 @@ ANALYZE_SYSTEM = (
     "5.任何技能（包括竞品快照）都必须输出假设层——对观察到的差异给出2个可能的解读，"
     "假设层不允许为空。"
 )
+OPS_SYSTEM = (
+    "你是商家经营分析助手。只输出 json："
+    '{"observationIds": ["合法观察字典中选取的字段ID，选2~4个"], '
+    '"hypotheses": ["包含可能/或许限定词的推测，给两个可能解读"], '
+    '"suggestions": ["从所选观察出发的1~2条可执行建议"]}。'
+    "观察正文由程序按照原指标字段生成，不返回 observations，不自行计算占比或增长率。"
+    "假设是推测，不得使用证明了/肯定是/百分百等确定性因果断言。"
+    "选择数据中现成的字段；缺失指标不能猜。"
+)
+FACT_OBSERVATION_SYSTEM = (
+    "你是商家分析助手。只输出 json："
+    '{"observationIds": ["从合法观察事实字典中选择1~4个字段ID"], '
+    '"hypotheses": ["包含可能/或许限定词的推测"], '
+    '"suggestions": ["从所选观察出发的1~2条可执行建议"]}。'
+    "观察正文由程序按原始评论桶或竞品卡片原样生成，禁止返回 observations，"
+    "禁止补充5分制、满分、百分比、总数或缺失评分等数据。"
+    "选择数据中现成的字段；缺失指标不能猜。"
+)
 
 
 def analyze(state: MState) -> dict:
@@ -133,17 +250,27 @@ def analyze(state: MState) -> dict:
                 "error_message": "AI 服务未连通（未配置 API Key）：本次请求已中止生成，未产出分析。"}
     try:
         out = chat_json(
-            ANALYZE_SYSTEM,
+            OPS_SYSTEM if state["skill"] == "ops" else FACT_OBSERVATION_SYSTEM,
             f"分析技能：{SKILL_LABEL.get(state['skill'], state['skill'])}\n"
-            f"工具数据（json）：\n{state['data_text']}",
+            f"工具数据（json）：\n{state['data_text']}\n"
+            f"合法观察字典（只按ID选择）：{json.dumps(state.get('observation_facts', {}), ensure_ascii=False)}",
             max_tokens=1000,
         )
     except Exception as e:
         return {"error_code": DOWN_CODE,
                 "error_message": f"AI 服务未连通（调用失败：{type(e).__name__}）：本次请求已中止生成，未产出分析。"}
+    if state["skill"] in ("ops", "reviews", "competitors"):
+        ids = out.get("observationIds")
+        facts = state.get("observation_facts", {})
+        if not isinstance(ids, list) or not (1 <= len(ids) <= 4) or any(
+                not isinstance(key, str) or key not in facts for key in ids):
+            return {"error_code": GUARDRAIL_CODE, "error_message": "护栏拦截：观察必须引用原始事实字段"}
+        observations = [facts[key] for key in dict.fromkeys(ids)]
+    else:
+        observations = out.get("observations") or []
     return {
         # or [] 兜底：模型可能没给某个字段，用空列表避免下游崩
-        "observations": out.get("observations") or [],
+        "observations": observations,
         "hypotheses": out.get("hypotheses") or [],
         "suggestions": out.get("suggestions") or [],
     }
@@ -154,13 +281,23 @@ def gate(state: MState) -> dict:
     if state.get("error_code"):
         return {}
     obs, hyp, sug = state.get("observations", []), state.get("hypotheses", []), state.get("suggestions", [])
-    data_text = state.get("data_text", "")
+    if not isinstance(obs, list) or not obs or not all(isinstance(sentence, str) and sentence.strip() for sentence in obs):
+        return {"error_code": GUARDRAIL_CODE, "error_message": "护栏拦截：缺少有效观察层"}
+    if state.get("skill") in SKILL_LABEL and any(sentence not in state.get("observation_facts", {}).values() for sentence in obs):
+        return {"error_code": GUARDRAIL_CODE, "error_message": "护栏拦截：观察与原始事实字段不匹配"}
+    source = state.get("data")
+    if source is None:
+        try:
+            source = json.loads(state.get("data_text", "{}"), parse_float=Decimal)
+        except (ValueError, TypeError):
+            source = {}
+    source_numbers = _source_numbers(source)
 
-    # ① 观察句的数字必须存在于工具结果（粗存在性校验：把句子里的数字抽出来，去数据文本里找）
+    # ① 数值精确等价，不以字符串子串作为证据；禁止未提供的自行换算。
     for sentence in obs:
         # re.findall 抽出所有数字（支持小数）：\d+ 整数部分，(?:\.\d+)? 可选的小数部分
-        for num in re.findall(r"\d+(?:\.\d+)?", str(sentence)):
-            if num not in data_text:
+        for num in re.findall(r"(?<![\d.])-?\d+(?:\.\d+)?(?![\d.])", str(sentence)):
+            if Decimal(num) not in source_numbers:
                 return {"error_code": GUARDRAIL_CODE,
                         "error_message": f"护栏拦截：观察句中的数字 {num} 不在工具数据中（疑似编造）"}
     # ② 假设层：必须存在、必须含限定词；未限定的确定性断言才拦截

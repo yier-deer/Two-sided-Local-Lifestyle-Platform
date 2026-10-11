@@ -20,6 +20,9 @@ spring:
   sql:
     init:
       mode: always                  # PG 非嵌入式库，必须 always 才执行 schema.sql
+      schema-locations:
+        - classpath:schema.sql
+        - classpath:db/updates/20261010-shop-address.sql
   data:
     redis:                          # 注意 6380！容器映射偏移（本机自装 Redis 占 6379，ADR-015）
       host: localhost

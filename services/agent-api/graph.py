@@ -34,6 +34,7 @@
 #   for s in shops: ...                → 遍历
 #   if not x / if x is None            → 假值判断 / 严格判 None
 from typing import Any, TypedDict
+import math
 
 from langgraph.graph import END, START, StateGraph
 
@@ -156,7 +157,7 @@ def search_shops(state: AgentState) -> dict:
             category = top[0]                         # 用排名第一的品类
     try:
         candidates = tools.search_shops(
-            state["lat"], state["lng"], radius=cons.get("radius", 5000), category=category,
+            state["lat"], state["lng"], radius=cons.get("radius", 5000), category=category, limit=40,
         )
     except Exception as e:
         # 主站未连通：诚实报错，不拿空结果伪装"附近没有店"
@@ -165,11 +166,23 @@ def search_shops(state: AgentState) -> dict:
             "error_message": f"主站数据服务未连通（{type(e).__name__}）：检索失败，本次请求已中止，未生成任何内容。",
             "candidates": [],
         }
+    # Empty newly approved admissions may be closest but have no purchasable offer.
+    # Inspect a wider candidate window before choosing the six evidence sources.
+    priced = [candidate for candidate in candidates if isinstance(candidate.get('minSkuPrice'), (int, float))]
+    if priced:
+        candidates = priced
+    budget = cons.get('budgetYuan')
+    budget_facts = {}
+    if isinstance(budget, (int, float)) and not isinstance(budget, bool) and math.isfinite(budget) and budget > 0:
+        affordable = [candidate for candidate in candidates if isinstance(candidate.get('minSkuPrice'), (int, float)) and candidate['minSkuPrice'] <= budget * 100]
+        budget_facts = {'budgetReference': 'packageStartingPrice', 'hasBudgetOption': bool(affordable)}
+        if affordable:
+            candidates = affordable
     return {
         "candidates": candidates,
-        "constraints": {**cons, "category": category},   # 合并：把最终使用的品类写回状态
+        "constraints": {**cons, "category": category, **budget_facts},
         "tool_calls": state.get("tool_calls", [])
-                      + [f"GET /internal/shops/search?category={category}&radius={cons.get('radius', 5000)}"],
+                      + [f"GET /internal/shops/search?category={category}&radius={cons.get('radius', 5000)}&limit=40"],
     }
 
 
@@ -272,7 +285,11 @@ def _decide_llm(state: AgentState, evidences: list) -> dict:
     out = chat_json(
         DECIDE_SYSTEM,
         # 拼装用户消息：诉求 + 画像 + 证据（模型只能看到这些，看到什么就只能写什么）
-        f"用户诉求：{state['message']}\n用户画像：{profile_text}\n候选店铺证据（json）：\n{evidence_text}",
+        f"用户诉求：{state['message']}\n用户画像：{profile_text}\n"
+        f"本轮约束：{json.dumps(state.get('constraints', {}), ensure_ascii=False)}\n"
+        "预算用于在售套餐起价的参考筛选，不代表能推算人数或保证实际人均消费；"
+        "hasBudgetOption=false时如实说明价格需要再次核对，不承诺预算内。\n"
+        f"候选店铺证据（json）：\n{evidence_text}",
         max_tokens=1500,
     )
     shops = out.get("shops", [])

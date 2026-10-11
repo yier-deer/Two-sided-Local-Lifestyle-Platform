@@ -37,3 +37,12 @@ evals/.replay-token.tmp
 docs/day1-学习笔记.md
 
 *.log
+apps/web/test-results/
+apps/web/playwright-report/
+deploy/logs/
+deploy/runtime/
+
+# 个人求职材料与 AI 工作流产物（非项目交付物，不入库）
+/exam-sprint-handbook.html
+/*冲刺站.html
+/docs/superpowers/

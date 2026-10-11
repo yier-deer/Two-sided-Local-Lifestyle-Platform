@@ -1,62 +1,174 @@
 <script setup>
-// 登录/注册合一页：对接级前端，无花活
-// 管理员演示账号在页面下方提示（13900000000 / admin123456）
-import { ref } from 'vue'
-import { login, register } from '../api'
-
-const mode = ref('login')           // login | register
-const phone = ref('')
-const password = ref('')
-const role = ref('USER')
-const nickname = ref('')
-const msg = ref('')
-
+import { ref, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import Icon from "../components/Icon.vue";
+import { login, register, me } from "../api.js";
+import { session, setIdentity, toast } from "../session.js";
+const route = useRoute(),
+  router = useRouter();
+const mode = ref("login"),
+  phone = ref(""),
+  password = ref(""),
+  role = ref(route.query.as === "MERCHANT" ? "MERCHANT" : "USER"),
+  nickname = ref(""),
+  busy = ref(false),
+  error = ref("");
+const seeds = {
+  USER: ["13611110001", "user123456"],
+  MERCHANT: ["13611110004", "merchant123456"],
+  ADMIN: ["13900000000", "admin123456"],
+};
+let disposed = false;
+onBeforeUnmount(() => {
+  disposed = true;
+});
 async function submit() {
-  msg.value = ''
+  busy.value = true;
+  error.value = "";
   try {
-    if (mode.value === 'login') {
-      const data = await login(phone.value, password.value)
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('role', data.role)
-      location.hash = data.role === 'MERCHANT' ? '#/my' : '#/map'
-    } else {
-      await register(phone.value, password.value, role.value, nickname.value)
-      msg.value = '注册成功，请登录'
-      mode.value = 'login'
+    if (mode.value === "register") {
+      await register(phone.value, password.value, role.value, nickname.value);
+      mode.value = "login";
+      toast("注册成功，现在可以登录");
+      return;
     }
+    const data = await login(phone.value, password.value);
+    if (disposed) return;
+    setIdentity(data);
+    const identityRevision = session.revision;
+    try {
+      const details = await me();
+      if (disposed || session.revision !== identityRevision) return;
+      setIdentity(details);
+    } catch (e) {
+      if (disposed || e.code === "SESSION_CHANGED") return;
+      /* JWT login succeeded; nickname may be unavailable. */
+    }
+    const redirect = route.query.redirect ? String(route.query.redirect) : null;
+    const requiredRole = redirect ? router.resolve(redirect).meta.role : null;
+    const compatible = !requiredRole || requiredRole === data.role;
+    router.push(
+      redirect && compatible
+        ? redirect
+        : data.role === "MERCHANT"
+          ? "/merchant"
+          : data.role === "ADMIN"
+            ? "/admin"
+            : "/discover",
+    );
+    toast("欢迎回来，开始发现好生活");
   } catch (e) {
-    msg.value = e.message
+    if (disposed || e.code === "SESSION_CHANGED") return;
+    error.value = e.message;
+  } finally {
+    busy.value = false;
   }
 }
+function quick(key) {
+  [phone.value, password.value] = seeds[key];
+  mode.value = "login";
+  submit();
+}
 </script>
-
 <template>
-  <main class="page">
-    <h2>{{ mode === 'login' ? '登录 ScoutBite' : '注册账号' }}</h2>
-
-    <div class="tabs">
-      <button :class="{ on: mode === 'login' }" @click="mode = 'login'">登录</button>
-      <button :class="{ on: mode === 'register' }" @click="mode = 'register'">注册</button>
-    </div>
-
-    <label>手机号 <input v-model="phone" placeholder="13800000001" /></label>
-    <label>密码 <input v-model="password" type="password" placeholder="至少 6 位" /></label>
-
-    <template v-if="mode === 'register'">
-      <label>昵称 <input v-model="nickname" placeholder="选填" /></label>
-      <label>角色
-        <select v-model="role">
-          <option value="USER">用户（逛店下单）</option>
-          <option value="MERCHANT">商家（入驻开店）</option>
-        </select>
-      </label>
-    </template>
-
-    <button class="primary" @click="submit">{{ mode === 'login' ? '登录' : '注册' }}</button>
-    <p v-if="msg" class="msg">{{ msg }}</p>
-    <p class="hint">管理员演示账号：13900000000 / admin123456（仅 Swagger 或本页登录用）</p>
-    <p class="hint"><a href="#/map">先逛逛（游客模式）</a></p>
-  </main>
+  <div class="login-layout">
+    <section class="login-story">
+      <div class="eyebrow">LIFE IS BETTER AROUND THE CORNER</div>
+      <h1>生活的好去处，<br />总有你的一席。</h1>
+      <p>
+        发现附近的烟火气，让推荐有依据，让体验被听见。下一次出发，从这里开始。
+      </p>
+      <img src="/images/cafe.jpg" class="login-picture" alt="咖啡馆展示素材" />
+    </section>
+    <section class="login-card">
+      <h2>{{ mode === "login" ? "欢迎回到探店雷达" : "遇见附近的好生活" }}</h2>
+      <p>
+        {{
+          session.mode === "demo"
+            ? "当前为本地演示 · 账号与数据保存在浏览器"
+            : "当前为真实服务 · 使用业务系统账号"
+        }}
+      </p>
+      <div class="tabs">
+        <button :class="{ active: mode === 'login' }" @click="mode = 'login'">
+          登录账号</button
+        ><button
+          :class="{ active: mode === 'register' }"
+          @click="mode = 'register'"
+        >
+          注册新账号
+        </button>
+      </div>
+      <form @submit.prevent="submit">
+        <label class="form-field"
+          >手机号<input
+            v-model="phone"
+            aria-label="手机号"
+            type="tel"
+            autocomplete="username"
+            placeholder="请输入 11 位手机号"
+            required
+            pattern="1[0-9]{10}" /></label
+        ><label class="form-field"
+          >密码<input
+            v-model="password"
+            aria-label="密码"
+            type="password"
+            :autocomplete="
+              mode === 'login' ? 'current-password' : 'new-password'
+            "
+            placeholder="请输入至少 6 位密码"
+            required
+            minlength="6" /></label
+        ><template v-if="mode === 'register'"
+          ><label class="form-field"
+            >昵称<input
+              v-model="nickname"
+              placeholder="怎么称呼你？"
+              maxlength="24" /></label
+          ><label class="form-field"
+            >注册身份<select v-model="role">
+              <option value="USER">用户 · 发现与体验</option>
+              <option value="MERCHANT">商家 · 管理我的小店</option>
+            </select></label
+          ></template
+        >
+        <p
+          v-if="error"
+          class="error-state"
+          style="font-size: 11px"
+          role="alert"
+        >
+          {{ error }}
+        </p>
+        <button type="submit" class="btn primary full" :disabled="busy">
+          {{
+            busy
+              ? "正在处理…"
+              : mode === "login"
+                ? "登录，开始发现"
+                : "注册账号"
+          }}<Icon name="ArrowRight" :size="16" />
+        </button>
+      </form>
+      <div class="quick-login">
+        <p>答辩快捷账号 · 一键体验完整流程</p>
+        <div class="quick-account-row">
+          <button :disabled="busy" @click="quick('USER')">
+            <Icon name="Compass" :size="13" />体验用户</button
+          ><button :disabled="busy" @click="quick('MERCHANT')">
+            <Icon name="Store" :size="13" />体验商家</button
+          ><button :disabled="busy" @click="quick('ADMIN')">
+            <Icon name="ShieldCheck" :size="13" />店铺审核
+          </button>
+        </div>
+        <router-link
+          to="/discover"
+          class="subtle-link"
+          style="margin-top: 19px; font-size: 10px"
+          >先去逛逛 <Icon name="ArrowUpRight" :size="12"
+        /></router-link>
+      </div>
+    </section>
+  </div>
 </template>
-
-<style scoped src="../style.css"></style>

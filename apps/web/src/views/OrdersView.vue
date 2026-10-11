@@ -1,83 +1,234 @@
 <script setup>
-// 我的订单页：状态机全流程可视化（下单→支付→核销→评价）
-// - 每个状态的合法操作按钮由状态机决定（CREATED 可支付/取消；PAID 可核销/退单；REDEEMED 可评价）
-// - REDEEMED 的订单带"AI 起草评价"入口 → 签字权闭环的前半段
-import { onMounted, ref } from 'vue'
-import { myOrders, payOrder, redeemOrder, cancelOrder, refundOrder, isLogged } from '../api'
-
-const orders = ref([])
-const loading = ref(false)
-const err = ref('')
-const okMsg = ref('')
-
-onMounted(load)
-
-/** 拉我的订单 */
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import Icon from "../components/Icon.vue";
+import UiState from "../components/UiState.vue";
+import {
+  myOrders,
+  payOrder,
+  redeemOrder,
+  cancelOrder,
+  refundOrder,
+  shopDetail,
+} from "../api.js";
+import { money, statusText, shopImage, dateTime } from "../domain.js";
+import { askConfirm, toast } from "../session.js";
+const route = useRoute();
+const orders = ref([]),
+  shops = ref({}),
+  loading = ref(true),
+  error = ref(""),
+  busy = ref(null),
+  tab = ref(route.query.status || "");
+const tabs = {
+  "": "全部订单",
+  CREATED: "待支付",
+  PAID: "待核销",
+  REDEEMED: "待评价",
+  REVIEWED: "已完成",
+};
+const filtered = computed(() =>
+  orders.value.filter((o) => !tab.value || o.status === tab.value),
+);
 async function load() {
-  if (!isLogged()) { location.hash = '#/login'; return }
-  loading.value = true
+  loading.value = true;
+  error.value = "";
   try {
-    orders.value = await myOrders()
+    orders.value = await myOrders();
+    const ids = [...new Set(orders.value.map((o) => o.shopId))];
+    const results = await Promise.allSettled(ids.map(shopDetail));
+    results.forEach((r, i) => {
+      if (r.status === "fulfilled") shops.value[ids[i]] = r.value;
+    });
   } catch (e) {
-    err.value = e.message
+    error.value = e.message;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-
-/** 通用动作执行器：成功后刷新列表（CAS 的 40903 会以 message 展示） */
-async function act(name, fn) {
-  err.value = ''; okMsg.value = ''
+async function act(o, action) {
+  if (busy.value !== null) return;
+  busy.value = o.id;
   try {
-    await fn()
-    okMsg.value = name + '成功'
-    await load()
+    await {
+      pay: payOrder,
+      redeem: redeemOrder,
+      cancel: cancelOrder,
+      refund: refundOrder,
+    }[action](o.id);
+    toast(
+      {
+        pay: "支付成功，出发前可在订单中查看套餐",
+        redeem: "核销成功，现在可以分享消费评价",
+        cancel: "订单已取消，库存和优惠券已恢复",
+        refund: "退单完成，库存和优惠券已恢复",
+      }[action],
+    );
+    await load();
   } catch (e) {
-    err.value = e.message
-    await load()   // 冲突（40903）后刷新看最新状态
+    toast(e.message, "error");
+    await load();
+  } finally {
+    busy.value = null;
   }
 }
-
-const statusText = {
-  CREATED: '待支付', PAID: '已支付·待核销', REDEEMED: '已核销·可评价',
-  REVIEWED: '已评价', CANCELLED_TIMEOUT: '超时取消', CANCELLED_USER: '已取消', REFUNDED: '已退款',
+function confirmAction(o, action) {
+  askConfirm({
+    title:
+      action === "refund"
+        ? "确认退掉这份套餐？"
+        : action === "cancel"
+          ? "取消未支付订单？"
+          : "确认完成到店核销？",
+    text:
+      action === "redeem"
+        ? "这是演示用消费确认。核销后代表已到店消费，不能再退单，随后可以评价。商家端也可以核销本店订单。"
+        : "确认后会恢复本单占用的套餐库存和优惠券。",
+    confirm:
+      action === "refund"
+        ? "确认退单"
+        : action === "cancel"
+          ? "取消订单"
+          : "确认核销",
+    danger: action !== "redeem",
+    action: () => act(o, action),
+  });
 }
-const fen = (v) => (v == null ? '-' : (v / 100).toFixed(2))
+onMounted(load);
 </script>
-
 <template>
-  <div class="page wide">
-    <h2>我的订单</h2>
-    <p class="sub">电子套餐券模型：支付只是买了券，到店核销才算消费，核销后才能评价</p>
-
-    <p class="msg" v-if="err">{{ err }}</p>
-    <p class="ok" v-if="okMsg">{{ okMsg }}</p>
-    <p class="hint" v-if="loading">加载中…</p>
-    <div class="empty" v-if="!loading && !orders.length">
-      还没有订单——去 <router-link to="/map">地图</router-link> 或 <router-link to="/agent">AI 助手</router-link> 逛逛
+  <div class="page-intro">
+    <div>
+      <div class="eyebrow">YOUR EVERYDAY PLANS</div>
+      <h1 style="margin-top: 8px">我的到店计划</h1>
+      <p>从一次心动，到一次认真体验。</p>
     </div>
-
-    <div class="card order-item" v-for="o in orders" :key="o.id" :class="{ dim: o.status.startsWith('CANCELLED') || o.status === 'REFUNDED' }">
-      <div class="row1">
-        <b>#{{ o.id }} · 店铺 #{{ o.shopId }} · 套餐 #{{ o.skuId }}</b>
-        <span class="badge" :class="o.status">{{ statusText[o.status] || o.status }}</span>
+    <router-link to="/discover" class="btn small"
+      ><Icon name="Compass" :size="15" />再发现一家好店</router-link
+    >
+  </div>
+  <div class="order-flow">
+    <span><Icon name="ShoppingBag" :size="16" />选套餐</span
+    ><Icon name="ChevronRight" :size="13" /><span
+      ><Icon name="Ticket" :size="16" />模拟支付</span
+    ><Icon name="ChevronRight" :size="13" /><span
+      ><Icon name="CheckCircle2" :size="16" />到店核销</span
+    ><Icon name="ChevronRight" :size="13" /><span
+      ><Icon name="MessageSquare" :size="16" />分享评价</span
+    >
+  </div>
+  <div class="tabs">
+    <button
+      v-for="(name, key) in tabs"
+      :key="key"
+      :class="{ active: tab === key }"
+      @click="tab = key"
+    >
+      {{ name }}
+      <span v-if="key" class="muted">{{
+        orders.filter((o) => o.status === key).length
+      }}</span>
+    </button>
+  </div>
+  <UiState
+    :loading="loading"
+    :error="error"
+    :empty="!filtered.length"
+    title="这一页还没有到店计划"
+    text="找一家喜欢的店，选一份刚刚好的套餐吧。"
+    @retry="load"
+    ><router-link to="/discover" class="btn primary small"
+      >去发现</router-link
+    ></UiState
+  >
+  <div v-if="!loading && !error">
+    <article
+      v-for="o in filtered"
+      :key="o.id"
+      class="order-card"
+      :data-testid="`order-${o.id}`"
+    >
+      <router-link :to="`/shop/${o.shopId}`"
+        ><img :src="shopImage(shops[o.shopId])" alt="店铺展示素材"
+      /></router-link>
+      <div class="order-main">
+        <div class="order-top">
+          <router-link :to="`/shop/${o.shopId}`"
+            ><h3>
+              {{ o.shopName || shops[o.shopId]?.name || `店铺 #${o.shopId}` }}
+            </h3></router-link
+          ><span
+            class="pill"
+            :class="
+              ['CREATED', 'REDEEMED'].includes(o.status)
+                ? 'orange'
+                : ['PAID', 'REVIEWED'].includes(o.status)
+                  ? 'green'
+                  : ''
+            "
+            >{{ statusText[o.status] }}</span
+          >
+        </div>
+        <p class="order-subtitle">{{ o.skuTitle || "到店套餐" }}</p>
+        <div class="order-details">
+          <span>订单 #{{ o.id }}</span
+          ><span v-if="o.couponId">已使用优惠券</span
+          ><span v-if="o.status === 'CREATED'"
+            >支付截止 {{ dateTime(o.expireAt) }}</span
+          ><span v-else>电子套餐券 · 单次核销</span>
+        </div>
       </div>
-      <div class="muted">
-        实付 <span class="price">¥{{ fen(o.priceSnapshot) }}</span>
-        <span v-if="o.couponId"> · 已用满减券</span>
-        <span v-if="o.status === 'CREATED'"> · 支付截止 {{ (o.expireAt || '').slice(0, 19).replace('T', ' ') }}</span>
+      <div class="order-end">
+        <div class="price">
+          <small>订单实付</small>¥{{ money(o.priceSnapshot) }}
+        </div>
+        <div class="order-actions">
+          <template v-if="o.status === 'CREATED'"
+            ><button
+              class="btn small"
+              :disabled="busy === o.id"
+              @click="confirmAction(o, 'cancel')"
+            >
+              取消订单</button
+            ><button
+              class="btn primary small"
+              :disabled="busy === o.id"
+              @click="act(o, 'pay')"
+            >
+              模拟支付
+            </button></template
+          ><template v-if="o.status === 'PAID'"
+            ><button
+              class="btn small"
+              :disabled="busy === o.id"
+              @click="confirmAction(o, 'refund')"
+            >
+              未核销退单</button
+            ><button
+              class="btn teal small"
+              :disabled="busy === o.id"
+              @click="confirmAction(o, 'redeem')"
+            >
+              到店核销
+            </button></template
+          ><router-link
+            v-if="o.status === 'REDEEMED'"
+            :to="`/orders/${o.id}/review`"
+            class="btn teal small"
+            ><Icon name="Sparkles" :size="13" />写评价 · AI
+            帮我起草</router-link
+          ><router-link
+            v-if="o.status === 'REVIEWED'"
+            :to="`/shop/${o.shopId}?review=${o.reviewId || ''}`"
+            class="btn small"
+            >查看评价 <Icon name="ArrowUpRight" :size="12" /></router-link
+          ><span
+            v-if="o.status.startsWith('CANCELLED') || o.status === 'REFUNDED'"
+            class="muted"
+            >库存与优惠券已恢复</span
+          >
+        </div>
       </div>
-
-      <div class="actions">
-        <button class="small primary" style="width:auto;margin:0" v-if="o.status === 'CREATED'" @click="act('支付', () => payOrder(o.id))">模拟支付</button>
-        <button class="small" v-if="o.status === 'CREATED'" @click="act('取消', () => cancelOrder(o.id))">取消</button>
-        <button class="small teal" v-if="o.status === 'PAID'" @click="act('核销', () => redeemOrder(o.id))">到店核销</button>
-        <button class="small" v-if="o.status === 'PAID'" @click="act('退单', () => refundOrder(o.id))">退单</button>
-        <router-link v-if="o.status === 'REDEEMED'" :to="`/orders/${o.id}/review`">
-          <button class="small teal">✍ AI 起草评价</button>
-        </router-link>
-        <span class="muted" v-if="o.status === 'REVIEWED'">已发布评价 ✓</span>
-      </div>
-    </div>
+    </article>
   </div>
 </template>

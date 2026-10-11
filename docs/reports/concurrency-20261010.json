@@ -1,0 +1,2160 @@
+{
+  "version": 1,
+  "runId": "20261010T152550-4ed3de",
+  "shopUrl": "http://localhost:8081",
+  "startedAt": "2026-10-10T15:25:50.163301+00:00",
+  "updatedAt": "2026-10-10T15:26:00.752663+00:00",
+  "status": "PASS",
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0,
+    "SKIP": 0
+  },
+  "resources": {
+    "timeoutShopUrl": "http://localhost:8082",
+    "shopId": 41,
+    "userPreparation": {
+      "expected": 200,
+      "prepared": 200,
+      "failures": [],
+      "phoneStart": 13880000000,
+      "userIds": [
+        21,
+        19,
+        44,
+        22,
+        20,
+        28,
+        45,
+        27,
+        26,
+        25,
+        23,
+        24,
+        29,
+        30,
+        32,
+        31,
+        38,
+        36,
+        35,
+        33,
+        34,
+        37,
+        41,
+        39,
+        40,
+        43,
+        47,
+        55,
+        58,
+        46,
+        42,
+        49,
+        54,
+        48,
+        50,
+        52,
+        53,
+        51,
+        57,
+        56,
+        60,
+        59,
+        62,
+        63,
+        67,
+        61,
+        64,
+        66,
+        65,
+        68,
+        71,
+        75,
+        73,
+        69,
+        76,
+        70,
+        72,
+        74,
+        77,
+        78,
+        82,
+        79,
+        80,
+        88,
+        81,
+        87,
+        84,
+        83,
+        86,
+        85,
+        89,
+        92,
+        94,
+        90,
+        91,
+        97,
+        93,
+        96,
+        95,
+        98,
+        101,
+        100,
+        99,
+        102,
+        106,
+        105,
+        104,
+        108,
+        103,
+        107,
+        111,
+        110,
+        109,
+        112,
+        114,
+        113,
+        116,
+        117,
+        115,
+        118,
+        119,
+        121,
+        120,
+        122,
+        123,
+        125,
+        128,
+        124,
+        126,
+        127,
+        129,
+        132,
+        131,
+        130,
+        135,
+        134,
+        137,
+        136,
+        133,
+        138,
+        140,
+        142,
+        141,
+        144,
+        146,
+        145,
+        143,
+        148,
+        172,
+        147,
+        151,
+        149,
+        150,
+        152,
+        178,
+        155,
+        153,
+        154,
+        156,
+        158,
+        157,
+        161,
+        159,
+        139,
+        160,
+        163,
+        162,
+        164,
+        165,
+        166,
+        167,
+        170,
+        168,
+        169,
+        173,
+        171,
+        174,
+        176,
+        175,
+        177,
+        179,
+        180,
+        182,
+        183,
+        184,
+        181,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        194,
+        193,
+        192,
+        197,
+        195,
+        196,
+        199,
+        200,
+        198,
+        201,
+        203,
+        206,
+        205,
+        204,
+        202,
+        208,
+        207,
+        210,
+        209,
+        212,
+        213,
+        211,
+        216,
+        214,
+        215,
+        218,
+        217
+      ]
+    },
+    "created": {
+      "coupons": [
+        {
+          "id": 61,
+          "total": 100,
+          "label": "200抢100"
+        },
+        {
+          "id": 62,
+          "total": 100,
+          "label": "同人20"
+        },
+        {
+          "id": 63,
+          "total": 10,
+          "label": "超时有券"
+        }
+      ],
+      "skus": [
+        {
+          "id": 95,
+          "stock": 1,
+          "label": "两人抢一份"
+        },
+        {
+          "id": 96,
+          "stock": 5,
+          "label": "超时无券"
+        },
+        {
+          "id": 97,
+          "stock": 5,
+          "label": "超时有券"
+        }
+      ],
+      "timeoutOrders": [
+        {
+          "id": 18,
+          "skuId": 96,
+          "userCouponId": null,
+          "expireAt": "2026-10-10T15:25:59.534190900Z"
+        },
+        {
+          "id": 19,
+          "skuId": 97,
+          "userCouponId": 117,
+          "expireAt": "2026-10-10T15:25:59.648747500Z"
+        }
+      ]
+    },
+    "claim200": {
+      "couponId": 61,
+      "summary": {
+        "requests": 200,
+        "success": 100,
+        "rejected": 100,
+        "exceptions": 0,
+        "unexpected": 0
+      },
+      "outcomes": [
+        {
+          "index": 0,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 1,
+          "code": 0,
+          "data": {
+            "userCouponId": 97,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 2,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 3,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 4,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 5,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 6,
+          "code": 0,
+          "data": {
+            "userCouponId": 111,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 109
+        },
+        {
+          "index": 7,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 8,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 9,
+          "code": 0,
+          "data": {
+            "userCouponId": 67,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 10,
+          "code": 0,
+          "data": {
+            "userCouponId": 108,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 11,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 12,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 13,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 14,
+          "code": 0,
+          "data": {
+            "userCouponId": 63,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 15,
+          "code": 0,
+          "data": {
+            "userCouponId": 45,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 16,
+          "code": 0,
+          "data": {
+            "userCouponId": 36,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 62
+        },
+        {
+          "index": 17,
+          "code": 0,
+          "data": {
+            "userCouponId": 88,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 18,
+          "code": 0,
+          "data": {
+            "userCouponId": 53,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 19,
+          "code": 0,
+          "data": {
+            "userCouponId": 77,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 62
+        },
+        {
+          "index": 20,
+          "code": 0,
+          "data": {
+            "userCouponId": 104,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 109
+        },
+        {
+          "index": 21,
+          "code": 0,
+          "data": {
+            "userCouponId": 39,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 62
+        },
+        {
+          "index": 22,
+          "code": 0,
+          "data": {
+            "userCouponId": 50,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 62
+        },
+        {
+          "index": 23,
+          "code": 0,
+          "data": {
+            "userCouponId": 91,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 24,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 25,
+          "code": 0,
+          "data": {
+            "userCouponId": 40,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 26,
+          "code": 0,
+          "data": {
+            "userCouponId": 76,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 27,
+          "code": 0,
+          "data": {
+            "userCouponId": 30,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 46
+        },
+        {
+          "index": 28,
+          "code": 0,
+          "data": {
+            "userCouponId": 16,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 29,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 30,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 31,
+          "code": 0,
+          "data": {
+            "userCouponId": 18,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 32,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 33,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 34,
+          "code": 0,
+          "data": {
+            "userCouponId": 41,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 35,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 36,
+          "code": 0,
+          "data": {
+            "userCouponId": 64,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 37,
+          "code": 0,
+          "data": {
+            "userCouponId": 17,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 46
+        },
+        {
+          "index": 38,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 39,
+          "code": 0,
+          "data": {
+            "userCouponId": 112,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 109
+        },
+        {
+          "index": 40,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 41,
+          "code": 0,
+          "data": {
+            "userCouponId": 93,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 42,
+          "code": 0,
+          "data": {
+            "userCouponId": 79,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 43,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 44,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 45,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 46,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 47,
+          "code": 0,
+          "data": {
+            "userCouponId": 26,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 46
+        },
+        {
+          "index": 48,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 109
+        },
+        {
+          "index": 49,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 50,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 51,
+          "code": 0,
+          "data": {
+            "userCouponId": 80,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 52,
+          "code": 0,
+          "data": {
+            "userCouponId": 20,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 62
+        },
+        {
+          "index": 53,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 125
+        },
+        {
+          "index": 54,
+          "code": 0,
+          "data": {
+            "userCouponId": 28,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 55,
+          "code": 0,
+          "data": {
+            "userCouponId": 27,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 78
+        },
+        {
+          "index": 56,
+          "code": 0,
+          "data": {
+            "userCouponId": 44,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 46
+        },
+        {
+          "index": 57,
+          "code": 0,
+          "data": {
+            "userCouponId": 86,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 58,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 59,
+          "code": 0,
+          "data": {
+            "userCouponId": 33,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 60,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 61,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 62,
+          "code": 0,
+          "data": {
+            "userCouponId": 47,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 63,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 64,
+          "code": 0,
+          "data": {
+            "userCouponId": 94,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 65,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 66,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 67,
+          "code": 0,
+          "data": {
+            "userCouponId": 56,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 68,
+          "code": 0,
+          "data": {
+            "userCouponId": 54,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 69,
+          "code": 0,
+          "data": {
+            "userCouponId": 43,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 70,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 71,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 72,
+          "code": 0,
+          "data": {
+            "userCouponId": 95,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 73,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 74,
+          "code": 0,
+          "data": {
+            "userCouponId": 81,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 75,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 76,
+          "code": 0,
+          "data": {
+            "userCouponId": 59,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 77,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 78,
+          "code": 0,
+          "data": {
+            "userCouponId": 65,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 79,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 80,
+          "code": 0,
+          "data": {
+            "userCouponId": 61,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 81,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 82,
+          "code": 0,
+          "data": {
+            "userCouponId": 98,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 83,
+          "code": 0,
+          "data": {
+            "userCouponId": 100,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 84,
+          "code": 0,
+          "data": {
+            "userCouponId": 75,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 85,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 86,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 87,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 88,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 89,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 90,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 91,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 92,
+          "code": 0,
+          "data": {
+            "userCouponId": 35,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 93,
+          "code": 0,
+          "data": {
+            "userCouponId": 25,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 16
+        },
+        {
+          "index": 94,
+          "code": 0,
+          "data": {
+            "userCouponId": 37,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 95,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 96,
+          "code": 0,
+          "data": {
+            "userCouponId": 58,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 97,
+          "code": 0,
+          "data": {
+            "userCouponId": 83,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 98,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 99,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 100,
+          "code": 0,
+          "data": {
+            "userCouponId": 66,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 101,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 102,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 103,
+          "code": 0,
+          "data": {
+            "userCouponId": 115,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 104,
+          "code": 0,
+          "data": {
+            "userCouponId": 32,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 105,
+          "code": 0,
+          "data": {
+            "userCouponId": 90,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 106,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 107,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 108,
+          "code": 0,
+          "data": {
+            "userCouponId": 49,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 109,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 78
+        },
+        {
+          "index": 110,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 111,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 112,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 113,
+          "code": 0,
+          "data": {
+            "userCouponId": 99,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 114,
+          "code": 0,
+          "data": {
+            "userCouponId": 48,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 115,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 116,
+          "code": 0,
+          "data": {
+            "userCouponId": 102,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 117,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 118,
+          "code": 0,
+          "data": {
+            "userCouponId": 109,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 119,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 120,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 121,
+          "code": 0,
+          "data": {
+            "userCouponId": 73,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 122,
+          "code": 0,
+          "data": {
+            "userCouponId": 69,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 123,
+          "code": 0,
+          "data": {
+            "userCouponId": 38,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 124,
+          "code": 0,
+          "data": {
+            "userCouponId": 101,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 125,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 126,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 127,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 128,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 129,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 130,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 131,
+          "code": 0,
+          "data": {
+            "userCouponId": 52,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 132,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 133,
+          "code": 0,
+          "data": {
+            "userCouponId": 106,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 134,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 135,
+          "code": 0,
+          "data": {
+            "userCouponId": 103,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 136,
+          "code": 0,
+          "data": {
+            "userCouponId": 72,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 137,
+          "code": 0,
+          "data": {
+            "userCouponId": 84,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 138,
+          "code": 0,
+          "data": {
+            "userCouponId": 46,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 139,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 140,
+          "code": 0,
+          "data": {
+            "userCouponId": 78,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 141,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 142,
+          "code": 0,
+          "data": {
+            "userCouponId": 114,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 143,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 144,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 145,
+          "code": 0,
+          "data": {
+            "userCouponId": 70,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 146,
+          "code": 0,
+          "data": {
+            "userCouponId": 55,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 147,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 148,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 149,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 150,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 151,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 152,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 153,
+          "code": 0,
+          "data": {
+            "userCouponId": 34,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 154,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 155,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 156,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 157,
+          "code": 0,
+          "data": {
+            "userCouponId": 22,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 158,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 159,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 160,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 161,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 162,
+          "code": 0,
+          "data": {
+            "userCouponId": 42,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 163,
+          "code": 0,
+          "data": {
+            "userCouponId": 110,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 164,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 165,
+          "code": 0,
+          "data": {
+            "userCouponId": 71,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 166,
+          "code": 0,
+          "data": {
+            "userCouponId": 92,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 167,
+          "code": 0,
+          "data": {
+            "userCouponId": 21,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 168,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 169,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 170,
+          "code": 0,
+          "data": {
+            "userCouponId": 89,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 171,
+          "code": 0,
+          "data": {
+            "userCouponId": 85,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 172,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 173,
+          "code": 0,
+          "data": {
+            "userCouponId": 113,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 174,
+          "code": 0,
+          "data": {
+            "userCouponId": 31,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 175,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 176,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 94
+        },
+        {
+          "index": 177,
+          "code": 0,
+          "data": {
+            "userCouponId": 60,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 178,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 78
+        },
+        {
+          "index": 179,
+          "code": 0,
+          "data": {
+            "userCouponId": 57,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 180,
+          "code": 0,
+          "data": {
+            "userCouponId": 105,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 181,
+          "code": 0,
+          "data": {
+            "userCouponId": 107,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 94
+        },
+        {
+          "index": 182,
+          "code": 0,
+          "data": {
+            "userCouponId": 23,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 183,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 184,
+          "code": 0,
+          "data": {
+            "userCouponId": 96,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 185,
+          "code": 0,
+          "data": {
+            "userCouponId": 82,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 186,
+          "code": 0,
+          "data": {
+            "userCouponId": 19,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 16
+        },
+        {
+          "index": 187,
+          "code": 0,
+          "data": {
+            "userCouponId": 29,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 31
+        },
+        {
+          "index": 188,
+          "code": 0,
+          "data": {
+            "userCouponId": 74,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 189,
+          "code": 0,
+          "data": {
+            "userCouponId": 24,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 190,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 191,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 192,
+          "code": 0,
+          "data": {
+            "userCouponId": 68,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 193,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 194,
+          "code": 0,
+          "data": {
+            "userCouponId": 87,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 63
+        },
+        {
+          "index": 195,
+          "code": 0,
+          "data": {
+            "userCouponId": 62,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 196,
+          "code": 0,
+          "data": {
+            "userCouponId": 51,
+            "couponId": 61,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 47
+        },
+        {
+          "index": 197,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 198,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        },
+        {
+          "index": 199,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 110
+        }
+      ]
+    },
+    "duplicate20": {
+      "couponId": 62,
+      "userId": 21,
+      "summary": {
+        "requests": 20,
+        "success": 1,
+        "rejected": 19,
+        "exceptions": 0,
+        "unexpected": 0
+      },
+      "outcomes": [
+        {
+          "index": 0,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 1,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 2,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 3,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 4,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 5,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 6,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 7,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 8,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 9,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 10,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 11,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 12,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 13,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 14,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 15,
+          "code": 0,
+          "data": {
+            "userCouponId": 116,
+            "couponId": 62,
+            "status": "UNUSED"
+          },
+          "elapsedMs": 0
+        },
+        {
+          "index": 16,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 17,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 18,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        },
+        {
+          "index": 19,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 0
+        }
+      ]
+    },
+    "orderRace": {
+      "skuId": 95,
+      "outcomes": [
+        {
+          "index": 0,
+          "code": 0,
+          "data": {
+            "id": 16,
+            "userId": 21,
+            "shopId": 41,
+            "skuId": 95,
+            "couponId": null,
+            "priceSnapshot": 12800,
+            "status": "CREATED",
+            "expireAt": "2026-10-10T15:40:53.858292100Z",
+            "createdAt": "2026-10-10T15:25:53.858292100Z",
+            "shopName": "新店·围炉小火锅·开业尝鲜",
+            "skuTitle": "并发验收-两人抢一份-20261010T152550-4ed3de",
+            "nickname": "并发验收专用000",
+            "reviewId": null
+          },
+          "elapsedMs": 0
+        },
+        {
+          "index": 1,
+          "code": 40902,
+          "data": null,
+          "elapsedMs": 16
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "main and timeout Java with independent PG/Redis readiness",
+      "status": "PASS",
+      "evidence": {
+        "shop": "UP",
+        "timeoutShop": "UP",
+        "postgres": "SELECT 1",
+        "redis": "PONG"
+      },
+      "elapsedMs": 297
+    },
+    {
+      "name": "prepare 200 dedicated real users with 40 workers",
+      "status": "PASS",
+      "evidence": {
+        "users": 200,
+        "createdUsers": 200,
+        "workers": 40,
+        "shopId": 41
+      },
+      "elapsedMs": 2765
+    },
+    {
+      "name": "200 barrier-start requests claim 100 fresh coupons",
+      "status": "PASS",
+      "evidence": {
+        "requests": 200,
+        "success": 100,
+        "rejected": 100,
+        "exceptions": 0,
+        "unexpected": 0,
+        "redisRemaining": 0,
+        "redisUsers": 100,
+        "dbUserCoupons": 100,
+        "couponId": 61
+      },
+      "elapsedMs": 407
+    },
+    {
+      "name": "same user 20 barrier-start requests claim only once",
+      "status": "PASS",
+      "evidence": {
+        "requests": 20,
+        "success": 1,
+        "rejected": 19,
+        "exceptions": 0,
+        "unexpected": 0,
+        "redisRemaining": 99,
+        "dbUserCoupons": 1,
+        "couponId": 62
+      },
+      "elapsedMs": 171
+    },
+    {
+      "name": "two buyers compete for one SKU then winner cancellation restores once",
+      "status": "PASS",
+      "evidence": {
+        "requests": 2,
+        "success": 1,
+        "rejected": 1,
+        "exceptions": 0,
+        "unexpected": 0,
+        "orderId": 16,
+        "skuId": 95,
+        "stockAfterCancel": 1
+      },
+      "elapsedMs": 406
+    },
+    {
+      "name": "actual expireAt closes unpaid plain/coupon orders and restores three sources",
+      "status": "PASS",
+      "evidence": {
+        "orders": [
+          {
+            "orderId": 18,
+            "skuId": 96,
+            "status": "CANCELLED_TIMEOUT",
+            "stockRestored": 5,
+            "expireAt": "2026-10-10T15:25:59.534190900Z",
+            "withCoupon": false
+          },
+          {
+            "orderId": 19,
+            "skuId": 97,
+            "status": "CANCELLED_TIMEOUT",
+            "stockRestored": 5,
+            "expireAt": "2026-10-10T15:25:59.648747500Z",
+            "withCoupon": true
+          }
+        ],
+        "couponId": 63,
+        "userCouponId": 117,
+        "couponState": "UNUSED",
+        "pollElapsedSeconds": 5.922,
+        "maxWaitSeconds": 30
+      },
+      "elapsedMs": 6500
+    }
+  ],
+  "limitations": [
+    "These exact isolated local concurrency scenarios do not establish production throughput.",
+    "Fresh API-created SKU/coupon records are retained; prior data is not reset.",
+    "The 200-user account range is reused only after role/password checks; tokens never leave memory."
+  ]
+}

@@ -1,82 +1,168 @@
 <script setup>
-// 商家 AI 分析页：三技能（经营归因/评论诊断/竞品快照）× 观察/假设/建议三层
-// - 归属校验在 Java 门面做（只能分析自己的店），前端只传 shopId
-// - 护栏保证：观察句数字来自真实数据、假设必含"可能"、建议 ≤2 条——本页展示这层结构
-import { onMounted, ref } from 'vue'
-import { myShops, agentAnalyze, isLogged, myRole } from '../api'
-
-const shops = ref([])
-const shopId = ref(null)
-const skill = ref('ops')
-const result = ref(null)      // {observations, hypotheses, suggestions}
-const busy = ref(false)
-const err = ref('')
-
-onMounted(async () => {
-  if (!isLogged() || myRole() !== 'MERCHANT') { location.hash = '#/login'; return }
+import { onMounted, ref, watch } from "vue";
+import Icon from "../components/Icon.vue";
+import UiState from "../components/UiState.vue";
+import { myShops, agentAnalyze } from "../api.js";
+import { session, ui } from "../session.js";
+import { chooseMerchantShop } from "../domain.js";
+const shops = ref([]),
+  selected = ref(null),
+  skill = ref("ops"),
+  result = ref(null),
+  loading = ref(true),
+  busy = ref(false),
+  error = ref("");
+const skills = {
+  ops: {
+    name: "读懂经营数据",
+    text: "观察订单与收入，寻找需要验证的经营假设。",
+    icon: "TrendingUp",
+  },
+  reviews: {
+    name: "听见顾客反馈",
+    text: "了解评价里的高频意见，找到可改善的体验。",
+    icon: "MessageSquare",
+  },
+  competitors: {
+    name: "了解附近同行",
+    text: "基于公开店铺资料，查看同类店的差异。",
+    icon: "Compass",
+  },
+};
+async function load() {
+  loading.value = true;
+  error.value = "";
   try {
-    shops.value = (await myShops()).filter((s) => s.status === 'approved')
-    if (shops.value.length) shopId.value = shops.value[0].id
+    shops.value = (await myShops()).filter((s) => s.status === "approved");
+    selected.value = chooseMerchantShop(shops.value, ui.merchantShopId);
   } catch (e) {
-    err.value = e.message
-  }
-})
-
-/** 切店或切技能都重新分析 */
-async function analyze() {
-  if (!shopId.value) return
-  busy.value = true; err.value = ''; result.value = null
-  try {
-    result.value = await agentAnalyze(shopId.value, skill.value)
-  } catch (e) {
-    err.value = e.message   // 42201 护栏拦截 / 50000 服务未连通——原样展示
+    error.value = e.message;
   } finally {
-    busy.value = false
+    loading.value = false;
   }
 }
-
-const skills = { ops: '经营归因', reviews: '评论诊断', competitors: '竞品快照' }
+async function analyze() {
+  if (!selected.value || busy.value) return;
+  const requestedShop = Number(selected.value),
+    requestedSkill = skill.value;
+  busy.value = true;
+  error.value = "";
+  result.value = null;
+  try {
+    const data = await agentAnalyze(requestedShop, requestedSkill);
+    if (
+      Number(selected.value) === requestedShop &&
+      skill.value === requestedSkill
+    )
+      result.value = data;
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    busy.value = false;
+  }
+}
+onMounted(load);
+watch(selected, (value) => {
+  if (value != null) ui.merchantShopId = Number(value);
+});
 </script>
-
 <template>
-  <div class="page wide">
-    <h2>AI 经营分析</h2>
-    <p class="sub">只陈述数据里有的数字 · 假设必标「可能」· 相关不等于因果</p>
-
-    <div class="toolbar">
-      <label>选择店铺
-        <select v-model="shopId" @change="result = null">
-          <option v-for="s in shops" :key="s.id" :value="s.id">{{ s.name }}</option>
-        </select>
-      </label>
-      <div class="tabs" style="margin:0;flex:1">
-        <button v-for="(name, k) in skills" :key="k" :class="{ on: skill === k }" @click="skill = k; result = null">
-          {{ name }}
-        </button>
-      </div>
-      <button class="teal" @click="analyze" :disabled="busy || !shopId">
-        {{ busy ? '分析中…' : '开始分析' }}
+  <div class="page-intro">
+    <div>
+      <div class="eyebrow">INSIGHT BEFORE ACTION</div>
+      <h1 style="margin-top: 8px">经营里的下一步，有据可循。</h1>
+      <p>把观察、假设与建议分开说清楚，决定权留给你。</p>
+    </div>
+    <span class="pill green">{{
+      session.mode === "demo" ? "本地示例 · 未调用模型" : "本店业务数据"
+    }}</span>
+  </div>
+  <UiState
+    :loading="loading"
+    :empty="!shops.length && !error"
+    title="先让你的小店被看见"
+    text="入驻并通过审核后，即可使用经营分析。"
+    @retry="load"
+    ><router-link to="/join" class="btn primary small"
+      >提交入驻</router-link
+    ></UiState
+  ><template v-if="!loading && shops.length"
+    ><div class="panel" style="margin-bottom: 22px">
+      <label style="font-size: 11px; color: #93a382"
+        >选择分析的门店<select
+          v-model="selected"
+          :disabled="busy"
+          class="shop-select"
+          style="display: block; margin-top: 10px"
+          @change="result = null"
+        >
+          <option v-for="s in shops" :key="s.id" :value="s.id">
+            {{ s.name }}
+          </option>
+        </select></label
+      >
+    </div>
+    <div class="skill-options">
+      <button
+        v-for="(s, key) in skills"
+        :key="key"
+        class="skill-option"
+        :class="{ active: skill === key }"
+        :disabled="busy"
+        @click="
+          skill = key;
+          result = null;
+        "
+      >
+        <Icon :name="s.icon" :size="23" />
+        <h3>{{ s.name }}</h3>
+        <p>{{ s.text }}</p>
       </button>
     </div>
-
-    <p class="msg" v-if="err">{{ err }}</p>
-    <div class="empty" v-if="!shops.length">你还没有已过审的店铺</div>
-
-    <!-- 三层结果：观察（蓝）/ 假设（金）/ 建议（绿） -->
-    <template v-if="result">
-      <div class="layer obs">
-        <span class="tag">观察 · OBSERVATION（数字均来自经营数据）</span>
-        <div v-for="(o, i) in result.observations" :key="i">· {{ o }}</div>
-      </div>
-      <div class="layer hyp">
-        <span class="tag">假设 · HYPOTHESIS（推测，已标注限定词）</span>
-        <div v-for="(h, i) in result.hypotheses" :key="i">· {{ h }}</div>
-      </div>
-      <div class="layer sug">
-        <span class="tag">建议 · SUGGESTION（可执行）</span>
-        <div v-for="(s, i) in result.suggestions" :key="i">· {{ s }}</div>
-      </div>
-    </template>
-    <div class="empty" v-else-if="!busy && shops.length">选择技能后点击「开始分析」</div>
-  </div>
+    <button class="btn teal" :disabled="busy" @click="analyze">
+      <Icon
+        :name="busy ? 'LoaderCircle' : 'Sparkles'"
+        :class="{ spin: busy }"
+        :size="17"
+      />{{ busy ? "正在读取数据并核对分析…" : "开始分析这家店" }}</button
+    ><UiState :error="error" style="margin-top: 20px" @retry="analyze" />
+    <div v-if="result" class="analysis-layers">
+      <section class="analysis-layer">
+        <span><Icon name="Eye" :size="16" />01 · 观察 · 数据里看到了什么</span>
+        <p v-for="(line, i) in result.observations" :key="i">{{ line }}</p>
+        <p v-if="!result.observations?.length">
+          目前数据不足，暂时无法形成可靠观察。
+        </p>
+      </section>
+      <section class="analysis-layer hypothesis">
+        <span
+          ><Icon name="CircleHelp" :size="16" />02 · 假设 ·
+          可能的原因，仍需验证</span
+        >
+        <p v-for="(line, i) in result.hypotheses" :key="i">{{ line }}</p>
+      </section>
+      <section class="analysis-layer suggestion">
+        <span
+          ><Icon name="CheckCircle2" :size="16" />03 · 建议 ·
+          可以尝试的下一步</span
+        >
+        <p v-for="(line, i) in result.suggestions" :key="i">{{ line }}</p>
+        <router-link
+          to="/merchant/reviews"
+          class="subtle-link"
+          style="margin-top: 14px"
+          >先去听听顾客的反馈 <Icon name="ArrowRight" :size="14"
+        /></router-link>
+      </section>
+      <details v-if="result.toolCalls?.length" class="trace-details">
+        <summary>查看本次使用的数据工具</summary>
+        <code v-for="tool in result.toolCalls" :key="tool">{{ tool }}</code>
+      </details>
+    </div>
+    <div v-else-if="!busy && !error" class="alert-note section-gap">
+      <Icon name="Info" :size="17" /><span
+        >分析只读取你的门店数据与公开竞品资料。建议不会自动改价、发券或发布回复，需要你亲自操作。</span
+      >
+    </div></template
+  ><UiState v-if="error && !shops.length" :error="error" @retry="load" />
 </template>

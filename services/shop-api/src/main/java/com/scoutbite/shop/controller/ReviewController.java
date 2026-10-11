@@ -4,6 +4,7 @@ import com.scoutbite.shop.common.ApiResponse;
 import com.scoutbite.shop.common.ErrorCode;
 import com.scoutbite.shop.service.OrderService;
 import com.scoutbite.shop.service.ReviewService;
+import com.scoutbite.shop.repository.ShopRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,9 +26,11 @@ import java.util.Map;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ShopRepository shopRepo;
 
-    public ReviewController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService, ShopRepository shopRepo) {
         this.reviewService = reviewService;
+        this.shopRepo = shopRepo;
     }
 
     /**
@@ -79,6 +82,10 @@ public class ReviewController {
     @Operation(summary = "店铺评价列表（公开，含商家回复）")
     @GetMapping("/api/shops/{shopId}/reviews")
     public ApiResponse<?> listByShop(@PathVariable Long shopId) {
+        var shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null || !"approved".equals(shop.getStatus())) {
+            return ApiResponse.fail(ErrorCode.PARAM_ERROR, "店铺不存在");
+        }
         return ApiResponse.ok(reviewService.listByShop(shopId));
     }
 

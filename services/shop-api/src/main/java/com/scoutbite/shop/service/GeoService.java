@@ -2,6 +2,10 @@ package com.scoutbite.shop.service;
 
 import com.scoutbite.shop.entity.Shop;
 import com.scoutbite.shop.repository.ShopRepository;
+import com.scoutbite.shop.repository.ReviewRepository;
+import com.scoutbite.shop.repository.SkuRepository;
+import com.scoutbite.shop.entity.Sku;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,9 +30,14 @@ public class GeoService {
     private static final double EARTH_RADIUS_M = 6371000;
 
     private final ShopRepository shopRepo;
+    private final ReviewRepository reviewRepo;
+    private final SkuRepository skuRepo;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public GeoService(ShopRepository shopRepo) {
+    public GeoService(ShopRepository shopRepo, ReviewRepository reviewRepo, SkuRepository skuRepo) {
         this.shopRepo = shopRepo;
+        this.reviewRepo = reviewRepo;
+        this.skuRepo = skuRepo;
     }
 
     /**
@@ -68,13 +77,47 @@ public class GeoService {
                 m.put("id", s.getId());
                 m.put("name", s.getName());
                 m.put("category", s.getCategory());
+                m.put("city", s.getCity());
+                m.put("address", s.getAddress());
                 m.put("lat", s.getLat());
                 m.put("lng", s.getLng());
                 m.put("distanceMeters", Math.round(d));
+                m.putAll(presentation(s.getId()));
                 result.add(m);
             }
         }
         result.sort(Comparator.comparingLong(m -> (Long) m.get("distanceMeters")));
+        return result;
+    }
+
+    /** 每条评价先取有效维度均值，再按评价均值；未知人数只给套餐起价。 */
+    public Map<String, Object> presentation(Long shopId) {
+        var reviews = reviewRepo.findByShopIdOrderByIdDesc(shopId);
+        double totalReviewScore = 0;
+        int scoredReviewCount = 0;
+        for (var review : reviews) {
+            try {
+                Map<?, ?> scores = objectMapper.readValue(review.getScoresJson(), Map.class);
+                var mean = scores.values().stream().filter(Number.class::isInstance)
+                        .map(Number.class::cast).mapToDouble(Number::doubleValue)
+                        .filter(score -> Double.isFinite(score) && score >= 1 && score <= 5)
+                        .average();
+                if (mean.isPresent()) {
+                    totalReviewScore += mean.getAsDouble();
+                    scoredReviewCount++;
+                }
+            } catch (Exception ignored) {
+                // 旧数据的无效 JSON 不参与评分，但仍是实际评价条数的一部分。
+            }
+        }
+        var minimum = skuRepo.findByShopIdOrderById(shopId).stream()
+                .filter(Sku::isOnSale).filter(sku -> sku.getPrice() > 0)
+                .mapToInt(Sku::getPrice).min();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("reviewCount", reviews.size());
+        result.put("rating", scoredReviewCount == 0 ? null
+                : Math.round(totalReviewScore / scoredReviewCount * 10) / 10.0);
+        result.put("minSkuPrice", minimum.isPresent() ? minimum.getAsInt() : null);
         return result;
     }
 }

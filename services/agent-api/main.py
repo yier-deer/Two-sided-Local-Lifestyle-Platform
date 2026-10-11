@@ -1,7 +1,7 @@
 # main.py —— agent-api 的入口文件（Python 服务从这里启动）
 #
 # 【这个文件是什么】
-#   整个 Python Agent 服务的「大门」。它定义 4 个 HTTP 接口（端点），
+#   整个 Python Agent 服务的「大门」。它定义业务 HTTP 接口（端点），
 #   每个端点收到请求后，转交给对应的「图」（graph）去跑，再把结果包成统一信封返回。
 #   类比 Java：它就是 @RestController 那一层（Controller），不放业务逻辑。
 #
@@ -81,7 +81,7 @@ def review_draft(req: ReviewDraftRequest,
     """生成评价草稿（CASDG，绑订单事实，不发布）。身份由门面注入。
 
     关键点：这里只「起草」并存进草稿仓（drafts.py），不写数据库——
-           发布由 Java 门面调 /publish 取走草稿后写库。
+           发布由 Java 门面调 /publish 读取草稿，写库成功后调 /complete 消费。
     """
     result = run_review_draft(x_user_id, req.orderId, req.userNote, req.preferScores)
     if result["code"] != 0:
@@ -91,30 +91,35 @@ def review_draft(req: ReviewDraftRequest,
 
 @app.post("/agent/review-draft/{draft_id}/publish", tags=["user-agent"])
 def publish(draft_id: str, x_user_id: int = Header(alias="X-User-Id")) -> dict:
-    """
-    发布协作端点（被 Java 门面调用）：验归属 → 交出草稿并消费。
-    真正的写库在 Java（ReviewService 二次校验）——本服务永远不写库。
-    草稿发布即消费：二次调用返回"不存在或已消费"（幂等防连点双评）。
+    """Validate ownership and read the draft for Java's confirmation boundary.
 
-    参数：
-      draft_id   —— 路径参数（URL 里 {draft_id} 的位置），如 /agent/review-draft/d-abc123/publish
-      x_user_id  —— 门面注入的用户 ID，用来校验「这草稿是不是你的」
-
-    返回：code=0 时 data 里带 orderId/scores/content（给 Java 门面写库用）
+    Reading keeps it available after validation/database failures. Java validates the
+    original order and writes the user-confirmed content, then calls /complete.
+    The database's unique order constraint prevents concurrent duplicate reviews.
     """
-    # pop = 取出并删除（发布即消费）。归属不符时返回 None 且不会删除别人的草稿
-    d = drafts.pop(draft_id, x_user_id)
+    d = drafts.get(draft_id, x_user_id)
     if d is None:
         # 草稿还在仓库里 → 说明是「别人的草稿」，40300 拒绝
         if drafts.exists(draft_id):
             return {"code": 40300, "message": "草稿不属于当前用户", "data": None}
         # 仓库里也没有 → 说明已被消费过（或从来没生成过），40001
         return {"code": 40001, "message": "草稿不存在或已消费（勿重复发布）", "data": None}
-    # 归属正确：把草稿内容交给 Java 门面（它拿去做二次校验并写库）
+    # The original orderId is the immutable anchor; edits are applied only by Java.
     return {
         "code": 0, "message": "ok",
         "data": {"orderId": d["orderId"], "scores": d["scores"], "content": d["content"]},
     }
+
+
+@app.post("/agent/review-draft/{draft_id}/complete", tags=["user-agent"])
+def complete(draft_id: str, x_user_id: int = Header(alias="X-User-Id")) -> dict:
+    """Consume an owned draft after Java has successfully committed the review."""
+    d = drafts.pop(draft_id, x_user_id)
+    if d is None:
+        if drafts.exists(draft_id):
+            return {"code": 40300, "message": "草稿不属于当前用户", "data": None}
+        return {"code": 40001, "message": "草稿不存在或已消费（勿重复发布）", "data": None}
+    return {"code": 0, "message": "ok", "data": {"draftId": draft_id}}
 
 
 @app.post("/agent/merchant/analyze", tags=["merchant-agent"])

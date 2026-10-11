@@ -1,59 +1,101 @@
 <script setup>
-// 我的小店：商家看自己名下店铺与审核状态；被驳回可改资料重新提交
-import { onMounted, ref } from 'vue'
-import { myShops, resubmitShop, isLogged, myRole } from '../api'
-
-const shops = ref([])
-const msg = ref('')
-
-onMounted(async () => {
-  if (!isLogged()) return
+import { onMounted, ref } from "vue";
+import Icon from "../components/Icon.vue";
+import UiState from "../components/UiState.vue";
+import { myShops, resubmitShop } from "../api.js";
+import { shopImage, categories } from "../domain.js";
+import { toast } from "../session.js";
+const shops = ref([]),
+  loading = ref(true),
+  error = ref(""),
+  busy = ref(null);
+async function load() {
+  loading.value = true;
+  error.value = "";
   try {
-    shops.value = await myShops()
+    shops.value = await myShops();
   } catch (e) {
-    msg.value = e.message
-  }
-})
-
-async function resubmit(s) {
-  msg.value = ''
-  try {
-    await resubmitShop(s.id, {})   // 资料不改，仅重新提交
-    msg.value = `店铺「${s.name}」已重新提交待审核`
-    shops.value = await myShops()
-  } catch (e) {
-    msg.value = e.message
+    error.value = e.message;
+  } finally {
+    loading.value = false;
   }
 }
-
-const statusText = { pending: '待审核', approved: '已过审', rejected: '已驳回' }
+async function resubmit(s) {
+  busy.value = s.id;
+  try {
+    await resubmitShop(s.id, {});
+    toast("已重新提交审核，请等待平台确认");
+    await load();
+  } catch (e) {
+    toast(e.message, "error");
+  } finally {
+    busy.value = null;
+  }
+}
+onMounted(load);
 </script>
-
 <template>
-  <main class="page">
-    <h2>我的小店</h2>
-    <p v-if="!isLogged()" class="hint">请先<a href="#/login">登录</a>商家账号</p>
-    <p v-else-if="myRole() !== 'MERCHANT'" class="hint">当前账号是用户角色，入驻请换商家账号（或重新注册一个）</p>
-
-    <p v-if="msg" class="msg">{{ msg }}</p>
-
-    <table v-if="shops.length">
-      <thead><tr><th>ID</th><th>店名</th><th>品类</th><th>状态</th><th>操作</th></tr></thead>
-      <tbody>
-        <tr v-for="s in shops" :key="s.id">
-          <td>{{ s.id }}</td>
-          <td>{{ s.name }}</td>
-          <td>{{ s.category }}</td>
-          <td :class="s.status">{{ statusText[s.status] || s.status }}</td>
-          <td>
-            <button v-if="s.status === 'rejected'" @click="resubmit(s)">改资料重新提交</button>
-            <span v-else class="hint">—</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <p v-else-if="isLogged() && myRole() === 'MERCHANT'" class="hint">还没有店，<a href="#/join">去入驻</a></p>
-  </main>
+  <div class="page-intro">
+    <div>
+      <div class="eyebrow">A PLACE WITH YOUR NAME ON IT</div>
+      <h1 style="margin-top: 8px">管理我的小店</h1>
+      <p>每一间门店，都承载着一份认真经营。</p>
+    </div>
+    <router-link to="/join" class="btn primary small"
+      ><Icon name="Plus" :size="15" />入驻新门店</router-link
+    >
+  </div>
+  <UiState
+    :loading="loading"
+    :error="error"
+    :empty="!shops.length"
+    title="从一间小店，开始好经营"
+    text="提交门店资料，通过审核后，就能被附近的人发现。"
+    @retry="load"
+    ><router-link to="/join" class="btn primary small"
+      >提交入驻</router-link
+    ></UiState
+  ><template v-if="!loading && !error"
+    ><article v-for="s in shops" :key="s.id" class="merchant-shop-item">
+      <img :src="shopImage(s)" :alt="`${categories[s.category]}展示素材`" />
+      <div>
+        <h3>{{ s.name }}</h3>
+        <p>
+          <span
+            class="pill"
+            :class="
+              s.status === 'approved'
+                ? 'green'
+                : s.status === 'rejected'
+                  ? 'red'
+                  : 'orange'
+            "
+            >{{
+              {
+                approved: "已通过审核",
+                pending: "等待审核",
+                rejected: "资料已驳回",
+              }[s.status]
+            }}</span
+          >{{ categories[s.category] }}
+        </p>
+        <p style="margin-top: 7px">
+          {{ s.address || s.city || "杭州" }} · 店铺 #{{ s.id }}
+        </p>
+      </div>
+      <router-link
+        v-if="s.status === 'approved'"
+        :to="`/shop/${s.id}`"
+        class="btn small"
+        >查看店铺 <Icon name="ArrowUpRight" :size="13" /></router-link
+      ><button
+        v-else-if="s.status === 'rejected'"
+        class="btn small"
+        :disabled="busy === s.id"
+        @click="resubmit(s)"
+      >
+        重新提交审核</button
+      ><span v-else class="muted">审核通过后，顾客即可看见</span>
+    </article></template
+  >
 </template>
-
-<style scoped src="../style.css"></style>

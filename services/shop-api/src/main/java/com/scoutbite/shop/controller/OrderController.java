@@ -4,6 +4,10 @@ import com.scoutbite.shop.common.ApiResponse;
 import com.scoutbite.shop.common.ErrorCode;
 import com.scoutbite.shop.entity.Order;
 import com.scoutbite.shop.repository.OrderRepository;
+import com.scoutbite.shop.repository.ReviewRepository;
+import com.scoutbite.shop.repository.ShopRepository;
+import com.scoutbite.shop.repository.SkuRepository;
+import com.scoutbite.shop.repository.UserRepository;
 import com.scoutbite.shop.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,10 +35,20 @@ public class OrderController {
 
     private final OrderRepository orderRepo;
     private final OrderService orderService;
+    private final ShopRepository shopRepo;
+    private final SkuRepository skuRepo;
+    private final UserRepository userRepo;
+    private final ReviewRepository reviewRepo;
 
-    public OrderController(OrderRepository orderRepo, OrderService orderService) {
+    public OrderController(OrderRepository orderRepo, OrderService orderService,
+                           ShopRepository shopRepo, SkuRepository skuRepo,
+                           UserRepository userRepo, ReviewRepository reviewRepo) {
         this.orderRepo = orderRepo;
         this.orderService = orderService;
+        this.shopRepo = shopRepo;
+        this.skuRepo = skuRepo;
+        this.userRepo = userRepo;
+        this.reviewRepo = reviewRepo;
     }
 
     /**
@@ -126,7 +140,58 @@ public class OrderController {
         List<Order> list = (status == null || status.isBlank())
                 ? orderRepo.findByUserIdOrderByIdDesc(userId)
                 : orderRepo.findByUserIdAndStatusOrderByIdDesc(userId, status);
+        if (unreviewed) {
+            list = list.stream().filter(o -> Order.REDEEMED.equals(o.getStatus())
+                    && reviewRepo.findByOrderId(o.getId()).isEmpty()).toList();
+        }
         return ApiResponse.ok(list.stream().map(this::toDto).toList());
+    }
+
+    @Operation(summary = "商家订单（仅自有门店，可按门店或状态过滤）")
+    @GetMapping("/api/merchant/orders")
+    public ApiResponse<?> merchantOrders(@RequestParam(required = false) Long shopId,
+                                         @RequestParam(required = false) String status,
+                                         HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(request.getAttribute("role"))) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以查看门店订单");
+        }
+        List<Long> ownedIds = shopRepo.findByOwnerIdOrderByIdDesc(userId).stream()
+                .map(com.scoutbite.shop.entity.Shop::getId).toList();
+        if (shopId != null) {
+            if (!ownedIds.contains(shopId)) {
+                return ApiResponse.fail(ErrorCode.FORBIDDEN, "只能查看自己的门店订单");
+            }
+            ownedIds = List.of(shopId);
+        }
+        if (ownedIds.isEmpty()) return ApiResponse.ok(List.of());
+        List<Order> list = orderRepo.findByShopIdInOrderByIdDesc(ownedIds);
+        if (status != null && !status.isBlank()) {
+            list = list.stream().filter(o -> status.equals(o.getStatus())).toList();
+        }
+        return ApiResponse.ok(list.stream().map(this::toDto).toList());
+    }
+
+    @Operation(summary = "商家核销（仅自有门店订单，不代用户支付或退款）")
+    @PostMapping("/api/merchant/orders/{id}/redeem")
+    public ApiResponse<?> merchantRedeem(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) return ApiResponse.fail(ErrorCode.UNAUTHORIZED, "未登录");
+        if (!"MERCHANT".equals(request.getAttribute("role"))) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只有商家可以核销门店订单");
+        }
+        Order order = orderRepo.findById(id).orElse(null);
+        if (order == null) return ApiResponse.fail(ErrorCode.PARAM_ERROR, "订单不存在");
+        var shop = shopRepo.findById(order.getShopId()).orElse(null);
+        if (shop == null || !shop.getOwnerId().equals(userId)) {
+            return ApiResponse.fail(ErrorCode.FORBIDDEN, "只能核销自己的门店订单");
+        }
+        try {
+            return ApiResponse.ok(toDto(orderService.redeem(id, order.getUserId())));
+        } catch (OrderService.BizException error) {
+            return ApiResponse.fail(error.code, error.getMessage());
+        }
     }
 
     private Map<String, Object> toDto(Order o) {
@@ -139,6 +204,11 @@ public class OrderController {
         m.put("priceSnapshot", o.getPriceSnapshot());   // 分
         m.put("status", o.getStatus());
         m.put("expireAt", o.getExpireAt().toString());
+        m.put("createdAt", o.getCreatedAt() == null ? null : o.getCreatedAt().toString());
+        m.put("shopName", shopRepo.findById(o.getShopId()).map(s -> s.getName()).orElse("门店" + o.getShopId()));
+        m.put("skuTitle", skuRepo.findById(o.getSkuId()).map(s -> s.getTitle()).orElse("套餐" + o.getSkuId()));
+        m.put("nickname", userRepo.findById(o.getUserId()).map(u -> u.getNickname()).orElse("用户"));
+        m.put("reviewId", reviewRepo.findByOrderId(o.getId()).map(r -> r.getId()).orElse(null));
         return m;
     }
 
